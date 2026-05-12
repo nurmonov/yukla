@@ -2,207 +2,838 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yukbor.uz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Yukbor.uz - Yuk tashish platformasi</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', system-ui, sans-serif; }
-        .page { display: none; }
-        .active { display: block; }
-        .card { transition: all 0.3s ease; }
-        .card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.15); }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f3f4f6;
+        }
+
+        .page {
+            display: none;
+            min-height: 100vh;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:active {
+            transform: scale(0.98);
+        }
+
+        .chat-messages {
+            scroll-behavior: smooth;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #e5e7eb;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #10b981;
+            border-radius: 10px;
+        }
+
+        .bg-gradient {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 30px 30px 0 0;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .driver-card, .load-card {
+            transition: all 0.3s ease;
+        }
+
+        .driver-card:active, .load-card:active {
+            transform: scale(0.98);
+        }
     </style>
 </head>
-<body class="bg-gray-50">
+<body>
 
-<!-- LOGIN -->
-<div id="loginPage" class="page active min-h-screen flex items-center justify-center bg-gradient-to-br from-green-600 to-emerald-700">
-    <div class="max-w-md w-full mx-4 bg-white rounded-3xl shadow-2xl p-8">
-        <h1 class="text-5xl font-bold text-green-600 text-center">Yukbor</h1>
-        <p class="text-center text-gray-600 mt-2">O‘zbekistonda yuk bozori</p>
+<!-- USER TYPE SELECTION -->
+<div id="typePage" class="page active min-h-screen flex items-center justify-center bg-gradient px-4">
+    <div class="max-w-md w-full">
+        <div class="text-center mb-10">
+            <i class="fas fa-truck text-7xl text-white mb-4"></i>
+            <h1 class="text-5xl font-extrabold text-white mb-2">Yukbor</h1>
+            <p class="text-green-100 text-lg">O‘zbekistonning ishonchli yuk tashish platformasi</p>
+        </div>
 
-        <input type="tel" id="phoneInput" value="+998950750402" class="w-full mt-10 border-2 border-gray-300 rounded-2xl px-5 py-4 text-lg text-center">
-        <button onclick="sendCode()" class="w-full bg-green-600 text-white py-4 rounded-2xl text-lg font-semibold mt-6">Kirish</button>
+        <div class="bg-white rounded-3xl shadow-2xl p-8">
+            <div class="text-center mb-6">
+                <i class="fas fa-hand-peace text-4xl text-green-600 mb-2"></i>
+                <h2 class="text-2xl font-bold text-gray-800">Xush kelibsiz!</h2>
+                <p class="text-gray-500 mt-1">Iltimos, rolingizni tanlang</p>
+            </div>
 
-        <div id="codeSection" class="hidden mt-6">
-            <input type="text" id="codeInput" maxlength="6" placeholder="123456" class="w-full text-4xl text-center tracking-widest border-2 border-gray-300 rounded-2xl py-6">
-            <button onclick="verifyCode()" class="w-full bg-green-600 text-white py-4 rounded-2xl mt-4 text-lg font-semibold">Tasdiqlash</button>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="selectType('driver')"
+                        class="group bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-600 rounded-2xl p-6 hover:shadow-xl transition transform hover:-translate-y-1">
+                    <i class="fas fa-truck text-5xl text-green-600 group-hover:scale-110 transition inline-block mb-3"></i>
+                    <p class="font-bold text-lg text-gray-800">Haydovchi</p>
+                    <p class="text-xs text-gray-500 mt-1">Yuk topaman</p>
+                </button>
+
+                <button onclick="selectType('shipper')"
+                        class="group bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-600 rounded-2xl p-6 hover:shadow-xl transition transform hover:-translate-y-1">
+                    <i class="fas fa-chart-line text-5xl text-green-600 group-hover:scale-110 transition inline-block mb-3"></i>
+                    <p class="font-bold text-lg text-gray-800">Yuk beruvchi</p>
+                    <p class="text-xs text-gray-500 mt-1">Narxlar va shofyorlar</p>
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- USER TYPE -->
-<div id="typePage" class="page min-h-screen flex items-center justify-center bg-gray-50">
-    <div class="max-w-md w-full mx-4">
-        <h2 class="text-3xl font-bold text-center mb-10">Kim bo'lib kirayapsiz?</h2>
-        <div class="grid grid-cols-2 gap-6">
-            <button onclick="selectType('shipper')" class="bg-white border-2 border-green-600 rounded-3xl p-10 hover:bg-green-50">
-                <i class="fas fa-box text-6xl text-green-600 mb-4"></i>
-                <p class="font-semibold text-xl">Yuk beruvchi</p>
-            </button>
-            <button onclick="selectType('driver')" class="bg-white border-2 border-green-600 rounded-3xl p-10 hover:bg-green-50">
-                <i class="fas fa-truck text-6xl text-green-600 mb-4"></i>
-                <p class="font-semibold text-xl">Haydovchi</p>
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- MAIN APP -->
+<!-- MAIN APP CONTAINER -->
 <div id="mainApp" class="hidden">
 
-    <!-- HAYDOVCHI -->
-    <div id="driverHome" class="page active max-w-2xl mx-auto px-4 pt-6">
-        <h2 class="text-2xl font-bold">Salom, Rustam! 👋</h2>
-        <p class="text-gray-600">Mos yuklarni qidirish</p>
+    <!-- ========== HAYDOVCHI SAHIFASI ========== -->
+    <div id="driverHome" class="page">
+        <div class="max-w-2xl mx-auto px-4 pt-5 pb-20">
+            <div class="flex items-center justify-between mb-6">
+                <button onclick="backToType()" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200">
+                    <i class="fas fa-sign-out-alt text-gray-600"></i>
+                </button>
+                <div class="text-center">
+                    <i class="fas fa-truck text-2xl text-green-600"></i>
+                    <h2 class="text-xl font-bold">Haydovchi paneli</h2>
+                </div>
+                <div class="w-10"></div>
+            </div>
 
-        <div class="bg-white rounded-3xl shadow p-6 mt-6 space-y-5">
-            <div class="grid grid-cols-2 gap-4">
-                <select id="dFrom" class="border rounded-2xl px-4 py-4"><option value="">Qayerdan</option><option>Toshkent</option><option>Andijon</option><option>Samarqand</option><option>Farg‘ona</option></select>
-                <select id="dTo" class="border rounded-2xl px-4 py-4"><option value="">Qayerga</option><option>Toshkent</option><option>Andijon</option><option>Samarqand</option><option>Farg‘ona</option></select>
+            <div class="bg-white rounded-2xl shadow-lg p-5 mb-6">
+                <h3 class="font-semibold text-gray-700 mb-3">🔍 Yuk filtrlash</h3>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <select id="dFrom" class="border border-gray-200 rounded-xl px-4 py-3 focus:border-green-500 focus:outline-none">
+                        <option value="">Qayerdan</option>
+                        <option>Toshkent</option><option>Andijon</option><option>Samarqand</option>
+                        <option>Farg'ona</option><option>Buxoro</option><option>Namangan</option>
+                    </select>
+                    <select id="dTo" class="border border-gray-200 rounded-xl px-4 py-3 focus:border-green-500 focus:outline-none">
+                        <option value="">Qayerga</option>
+                        <option>Toshkent</option><option>Andijon</option><option>Samarqand</option>
+                        <option>Farg'ona</option><option>Buxoro</option><option>Namangan</option>
+                    </select>
+                </div>
+                <button onclick="filterDriverLoads()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition">
+                    <i class="fas fa-search mr-2"></i> Filtrlash
+                </button>
             </div>
-            <select id="dCategory" class="w-full border rounded-2xl px-4 py-4">
-                <option value="">Barcha kategoriyalar</option>
-                <option>Umumiy yuk</option><option>Oziq-ovqat</option><option>Qurilish</option><option>Sovutgichli</option><option>Hayvonlar</option>
-            </select>
-            <div class="flex gap-4">
-                <input type="number" id="minTon" value="5" class="flex-1 border rounded-2xl px-4 py-4" placeholder="Min tonna">
-                <input type="number" id="maxTon" value="25" class="flex-1 border rounded-2xl px-4 py-4" placeholder="Max tonna">
-            </div>
-            <button onclick="searchForDriver()" class="w-full bg-green-600 text-white py-5 rounded-3xl text-lg font-semibold">Yuklarni qidirish</button>
+
+            <h3 class="font-bold text-lg text-gray-700 mb-3">📦 Mavjud yuklar</h3>
+            <div id="driverLoadsList" class="space-y-4"></div>
         </div>
     </div>
 
-    <!-- YUK BERUVCHI -->
-    <div id="shipperHome" class="page max-w-2xl mx-auto px-4 pt-6">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold">Barcha yuklar (80+ ta)</h2>
-            <button onclick="showPage('createLoad')" class="bg-green-600 text-white px-6 py-3 rounded-2xl">+ Yuk qo‘yish</button>
-        </div>
-        <div id="loadsList" class="space-y-4"></div>
-    </div>
+    <!-- ========== YUK BERUVCHI SAHIFASI ========== -->
+    <div id="shipperHome" class="page">
+        <div class="max-w-2xl mx-auto px-4 pt-5 pb-20">
+            <div class="flex items-center justify-between mb-6">
+                <button onclick="backToType()" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200">
+                    <i class="fas fa-sign-out-alt text-gray-600"></i>
+                </button>
+                <div class="text-center">
+                    <i class="fas fa-chart-line text-2xl text-green-600"></i>
+                    <h2 class="text-xl font-bold">Narxlar va shofyorlar</h2>
+                    <p class="text-xs text-gray-500">Bozor monitoringi</p>
+                </div>
+                <div class="w-10"></div>
+            </div>
 
-    <!-- YUK QO‘YISH -->
-    <div id="createLoad" class="page max-w-2xl mx-auto px-4 pt-4">
-        <button onclick="backToHome()" class="text-2xl mb-4"><i class="fas fa-arrow-left"></i></button>
-        <h2 class="text-2xl font-bold mb-6">Yangi yuk qo‘yish</h2>
-        <form onsubmit="submitLoad(event)" class="space-y-6">
-            <input type="text" id="title" placeholder="Yuk nomi" class="w-full border rounded-2xl px-5 py-4" required>
-            <select id="category" class="w-full border rounded-2xl px-5 py-4">
-                <option>Umumiy yuk</option><option>Oziq-ovqat</option><option>Qurilish</option><option>Sovutgichli</option><option>Hayvonlar</option>
-            </select>
-            <div class="grid grid-cols-2 gap-4">
-                <input type="number" id="weight" step="0.1" placeholder="Tonna" class="border rounded-2xl px-5 py-4" required>
-                <input type="number" id="price" placeholder="Narx (so‘m)" class="border rounded-2xl px-5 py-4" required>
+            <div class="bg-white rounded-2xl shadow-lg p-5 mb-6">
+                <h3 class="font-semibold text-gray-700 mb-3">📍 Shahringizni tanlang</h3>
+                <select id="shipperCity" onchange="filterShipperData()" class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-green-500 focus:outline-none">
+                    <option value="Toshkent">Toshkent</option>
+                    <option value="Andijon">Andijon</option>
+                    <option value="Samarqand">Samarqand</option>
+                    <option value="Farg'ona">Farg'ona</option>
+                    <option value="Buxoro">Buxoro</option>
+                    <option value="Namangan">Namangan</option>
+                </select>
             </div>
-            <div class="grid grid-cols-2 gap-4">
-                <select id="fromCity" class="border rounded-2xl px-5 py-4"><option>Toshkent</option><option>Andijon</option></select>
-                <select id="toCity" class="border rounded-2xl px-5 py-4"><option>Samarqand</option><option>Farg‘ona</option></select>
+
+            <div class="bg-white rounded-2xl shadow-lg p-5 mb-6">
+                <h3 class="font-semibold text-gray-700 mb-3">🎯 Yo'nalish bo'yicha filtr</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <select id="sFromFilter" onchange="filterShipperData()" class="border border-gray-200 rounded-xl px-4 py-3">
+                        <option value="">Qayerdan</option>
+                        <option>Toshkent</option><option>Andijon</option><option>Samarqand</option>
+                        <option>Farg'ona</option><option>Buxoro</option><option>Namangan</option>
+                    </select>
+                    <select id="sToFilter" onchange="filterShipperData()" class="border border-gray-200 rounded-xl px-4 py-3">
+                        <option value="">Qayerga</option>
+                        <option>Toshkent</option><option>Andijon</option><option>Samarqand</option>
+                        <option>Farg'ona</option><option>Buxoro</option><option>Namangan</option>
+                    </select>
+                </div>
             </div>
-            <button type="submit" class="w-full bg-green-600 text-white py-6 rounded-3xl text-xl font-bold">E’lonni joylashtirish</button>
-        </form>
+
+            <div class="mb-8">
+                <h3 class="font-bold text-lg text-gray-700 mb-3 flex items-center gap-2">
+                    <i class="fas fa-box text-green-600"></i> Yuk narxlari
+                </h3>
+                <div id="shipperLoadsList" class="space-y-3"></div>
+            </div>
+
+            <div>
+                <h3 class="font-bold text-lg text-gray-700 mb-3 flex items-center gap-2">
+                    <i class="fas fa-users text-green-600"></i> Ishonchli shofyorlar
+                </h3>
+                <div id="shipperDriversList" class="space-y-4"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Yuk batafsil (yuk beruvchi uchun) -->
+<div id="loadDetailModal" class="modal-overlay" style="display: none;" onclick="closeLoadDetailModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="sticky top-0 bg-white border-b px-5 py-4 flex justify-between items-center">
+            <h3 class="font-bold text-xl">Yuk batafsil</h3>
+            <button onclick="closeLoadDetailModal()" class="w-8 h-8 bg-gray-100 rounded-full">
+                <i class="fas fa-times text-gray-600"></i>
+            </button>
+        </div>
+        <div id="loadDetailContent" class="p-5"></div>
+    </div>
+</div>
+
+<!-- MODAL: Shofyor batafsil -->
+<div id="driverDetailModal" class="modal-overlay" style="display: none;" onclick="closeDriverDetailModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="sticky top-0 bg-white border-b px-5 py-4 flex justify-between items-center">
+            <h3 class="font-bold text-xl">Shofyor ma'lumotlari</h3>
+            <button onclick="closeDriverDetailModal()" class="w-8 h-8 bg-gray-100 rounded-full">
+                <i class="fas fa-times text-gray-600"></i>
+            </button>
+        </div>
+        <div id="driverDetailContent" class="p-5"></div>
+    </div>
+</div>
+
+<!-- MODAL: Haydovchi uchun yuk batafsil -->
+<div id="driverLoadDetailModal" class="modal-overlay" style="display: none;" onclick="closeDriverLoadDetailModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="sticky top-0 bg-white border-b px-5 py-4 flex justify-between items-center">
+            <h3 class="font-bold text-xl">Yuk ma'lumotlari</h3>
+            <button onclick="closeDriverLoadDetailModal()" class="w-8 h-8 bg-gray-100 rounded-full">
+                <i class="fas fa-times text-gray-600"></i>
+            </button>
+        </div>
+        <div id="driverLoadDetailContent" class="p-5"></div>
+    </div>
+</div>
+
+<!-- CHAT MODAL -->
+<div id="chatModal" class="modal-overlay" style="display: none;" onclick="closeChatModal()">
+    <div class="modal-content" onclick="event.stopPropagation()" style="height: 80vh; display: flex; flex-direction: column;">
+        <div class="sticky top-0 bg-white border-b px-5 py-4 flex justify-between items-center">
+            <div>
+                <h3 id="chatModalTitle" class="font-bold">Chat</h3>
+                <p class="text-xs text-green-600">● Online</p>
+            </div>
+            <button onclick="closeChatModal()" class="w-8 h-8 bg-gray-100 rounded-full">
+                <i class="fas fa-times text-gray-600"></i>
+            </button>
+        </div>
+        <div id="chatModalMessages" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+        <div class="bg-white border-t px-4 py-3">
+            <div class="flex gap-2">
+                <input type="text" id="chatModalInput" placeholder="Xabar yozing..."
+                       class="flex-1 border border-gray-200 rounded-full px-5 py-3 focus:outline-none focus:border-green-500"
+                       onkeypress="if(event.key === 'Enter') sendModalMessage()">
+                <button onclick="sendModalMessage()" class="bg-green-600 hover:bg-green-700 text-white w-12 h-12 rounded-full transition">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
+    // ============ DATA ============
     let currentType = "";
     let allLoads = [];
+    let allDrivers = [];
+    let currentChatItem = null;
+    let currentChatMessages = [];
+    let nextId = 100;
 
-    function generate80Loads() {
-        const cities = ["Toshkent", "Andijon", "Samarqand", "Farg‘ona"];
-        const categories = ["Umumiy yuk", "Oziq-ovqat", "Qurilish", "Sovutgichli", "Hayvonlar"];
-        allLoads = [];
-        let id = 1;
-        for (let from of cities) {
-            for (let to of cities) {
-                if (from === to) continue;
-                for (let i = 0; i < 20; i++) {
-                    allLoads.push({
-                        id: id++,
-                        from: from,
-                        to: to,
-                        weight: (5 + Math.random() * 25).toFixed(1),
-                        price: Math.floor(2500000 + Math.random() * 7000000),
-                        category: categories[Math.floor(Math.random() * categories.length)],
-                        image: `https://picsum.photos/id/${100 + id}/600/400`
-                    });
-                }
-            }
+    const CITIES = ["Toshkent", "Andijon", "Samarqand", "Farg'ona", "Buxoro", "Namangan"];
+    const CATEGORIES = ["Umumiy yuk", "Oziq-ovqat", "Qurilish", "Sovutgichli", "Hayvonlar"];
+
+    const DRIVER_DATA = [
+        {
+            id: 1,
+            name: "Jasur Aliyev",
+            phone: "+998901234567",
+            experience: "8 yil",
+            rating: 4.9,
+            truckModel: "MAN TGS 18.440",
+            truckYear: 2021,
+            truckCondition: "A'lo holatda",
+            truckCapacity: "22 tonna",
+            truckImage: "https://picsum.photos/id/123/600/400",
+            avatar: "https://randomuser.me/api/portraits/men/1.jpg",
+            completedOrders: 1245,
+            city: "Toshkent",
+            verified: true,
+            about: "8 yillik tajriba. Barcha hujjatlar to'liq."
+        },
+        {
+            id: 2,
+            name: "Sherzod Karimov",
+            phone: "+998902345678",
+            experience: "5 yil",
+            rating: 4.7,
+            truckModel: "Volvo FH 500",
+            truckYear: 2020,
+            truckCondition: "Yaxshi holatda",
+            truckCapacity: "20 tonna",
+            truckImage: "https://picsum.photos/id/124/600/400",
+            avatar: "https://randomuser.me/api/portraits/men/2.jpg",
+            completedOrders: 876,
+            city: "Samarqand",
+            verified: true,
+            about: "5 yillik tajriba. Qisqa va uzoq masofalar."
+        },
+        {
+            id: 3,
+            name: "Bobur Rahimov",
+            phone: "+998903456789",
+            experience: "12 yil",
+            rating: 5.0,
+            truckModel: "Scania R450",
+            truckYear: 2022,
+            truckCondition: "A'lo holatda",
+            truckCapacity: "25 tonna",
+            truckImage: "https://picsum.photos/id/125/600/400",
+            avatar: "https://randomuser.me/api/portraits/men/3.jpg",
+            completedOrders: 2341,
+            city: "Toshkent",
+            verified: true,
+            about: "12 yillik tajriba. Eng og'ir yuklar bo'yicha mutaxassis."
+        },
+        {
+            id: 4,
+            name: "Dilshod Tursunov",
+            phone: "+998904567890",
+            experience: "3 yil",
+            rating: 4.5,
+            truckModel: "Kamaz 5490",
+            truckYear: 2019,
+            truckCondition: "Yaxshi holatda",
+            truckCapacity: "18 tonna",
+            truckImage: "https://picsum.photos/id/126/600/400",
+            avatar: "https://randomuser.me/api/portraits/men/4.jpg",
+            completedOrders: 432,
+            city: "Andijon",
+            verified: false,
+            about: "3 yillik tajriba. Mahalliy yo'nalishlar."
+        },
+        {
+            id: 5,
+            name: "Azizbek Mamatov",
+            phone: "+998905678901",
+            experience: "10 yil",
+            rating: 4.8,
+            truckModel: "Mercedes Actros 1845",
+            truckYear: 2021,
+            truckCondition: "A'lo holatda",
+            truckCapacity: "24 tonna",
+            truckImage: "https://picsum.photos/id/127/600/400",
+            avatar: "https://randomuser.me/api/portraits/men/5.jpg",
+            completedOrders: 1890,
+            city: "Buxoro",
+            verified: true,
+            about: "10 yillik tajriba. Xalqaro standartlar."
         }
-    }
+    ];
 
-    function renderLoads() {
-        const container = document.getElementById("loadsList");
-        container.innerHTML = "";
-        allLoads.slice(0, 15).forEach(load => {
-            const html = `
-          <div class="card bg-white rounded-3xl shadow p-5">
-            <img src="${load.image}" class="w-full h-48 object-cover rounded-2xl mb-4">
-            <p class="text-xl font-bold">${load.from} → ${load.to}</p>
-            <p class="text-gray-500">${load.category} • ${load.weight} tonna</p>
-            <p class="text-2xl font-bold text-green-600 mt-2">${(load.price/1000000).toFixed(1)} mln</p>
-            <div class="flex gap-3 mt-5">
-              <a href="tel:+998934567890" class="flex-1 bg-green-600 text-white py-3 rounded-2xl text-center">📞 Qo‘ng‘iroq</a>
-              <button onclick="openChat()" class="flex-1 border border-green-600 text-green-600 py-3 rounded-2xl">💬 Chat</button>
-            </div>
-          </div>`;
-            container.innerHTML += html;
-        });
-    }
-
-    function openChat() {
-        alert("💬 Chat oynasi ochildi (keyingi bosqichda to'liq chat qo'shamiz)");
-    }
-
-    function sendCode() {
-        document.getElementById("codeSection").classList.remove("hidden");
-    }
-
-    function verifyCode() {
-        if (document.getElementById("codeInput").value === "123456") {
-            document.getElementById("loginPage").classList.add("hidden");
-            document.getElementById("typePage").classList.add("active");
+    // ============ INIT ============
+    function init() {
+        const saved = localStorage.getItem('yukbor_loads');
+        if (saved) {
+            allLoads = JSON.parse(saved);
+            nextId = Math.max(...allLoads.map(l => l.id), 99) + 1;
         } else {
-            alert("To'g'ri kod: 123456");
+            generateSampleLoads();
+        }
+
+        const savedDrivers = localStorage.getItem('yukbor_drivers');
+        if (savedDrivers) {
+            allDrivers = JSON.parse(savedDrivers);
+        } else {
+            allDrivers = DRIVER_DATA;
+            localStorage.setItem('yukbor_drivers', JSON.stringify(allDrivers));
         }
     }
 
+    function generateSampleLoads() {
+        for (let i = 1; i <= 30; i++) {
+            let from = CITIES[Math.floor(Math.random() * CITIES.length)];
+            let to = CITIES[Math.floor(Math.random() * CITIES.length)];
+            while (to === from) to = CITIES[Math.floor(Math.random() * CITIES.length)];
+
+            allLoads.push({
+                id: i,
+                from: from,
+                to: to,
+                weight: (2 + Math.random() * 28).toFixed(1),
+                price: Math.floor(1000000 + Math.random() * 9000000),
+                category: CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)],
+                title: `${from} dan ${to} ga yuk tashish`,
+                description: `${from} shahridan ${to} shahriga yuk tashish kerak. Yuk holati yaxshi.`,
+                image: `https://picsum.photos/id/${150 + i}/600/400`,
+                createdAt: new Date().toISOString()
+            });
+        }
+        saveLoads();
+    }
+
+    function saveLoads() {
+        localStorage.setItem('yukbor_loads', JSON.stringify(allLoads));
+    }
+
+    // ============ USER TYPE ============
     function selectType(type) {
         currentType = type;
-        document.getElementById("typePage").classList.remove("active");
-        document.getElementById("mainApp").classList.remove("hidden");
+        document.getElementById('typePage').classList.remove('active');
+        document.getElementById('mainApp').classList.remove('hidden');
 
-        if (type === "driver") showPage("driverHome");
-        else {
-            showPage("shipperHome");
-            renderLoads();
+        if (type === 'driver') {
+            document.getElementById('driverHome').classList.add('active');
+            renderDriverLoads();
+        } else {
+            document.getElementById('shipperHome').classList.add('active');
+            filterShipperData();
         }
     }
 
-    function showPage(page) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(page).classList.add('active');
+    function backToType() {
+        if (confirm("Chiqishni xohlaysizmi?")) {
+            currentType = "";
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('typePage').classList.add('active');
+        }
     }
 
-    function backToHome() {
-        showPage(currentType === "driver" ? "driverHome" : "shipperHome");
+    // ============ HAYDOVCHI UCHUN ============
+    function renderDriverLoads(filterFrom = '', filterTo = '') {
+        const container = document.getElementById('driverLoadsList');
+        let filtered = [...allLoads];
+        if (filterFrom) filtered = filtered.filter(l => l.from === filterFrom);
+        if (filterTo) filtered = filtered.filter(l => l.to === filterTo);
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="text-center py-10 bg-white rounded-2xl">
+        <i class="fas fa-search text-5xl text-gray-300 mb-3"></i>
+        <p class="text-gray-500">Hech qanday yuk topilmadi</p>
+      </div>`;
+            return;
+        }
+
+        container.innerHTML = filtered.map(load => `
+      <div class="bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition" onclick="showDriverLoadDetail(${load.id})">
+        <img src="${load.image}" class="w-full h-44 object-cover" onerror="this.src='https://picsum.photos/600/400'">
+        <div class="p-4">
+          <div class="flex justify-between items-start mb-2">
+            <h3 class="font-bold text-lg">${load.from} → ${load.to}</h3>
+            <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">${load.category}</span>
+          </div>
+          <p class="text-gray-500 text-sm">⚖️ ${load.weight} tonna</p>
+          <p class="text-2xl font-bold text-green-600 mt-2">${(load.price / 1000000).toFixed(1)} mln so‘m</p>
+          <div class="flex gap-2 mt-4">
+            <a href="tel:+998934567890" onclick="event.stopPropagation()" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-xl text-center text-sm transition">📞 Qo‘ng‘iroq</a>
+            <button onclick="event.stopPropagation(); openChatModal('load', ${load.id})" class="flex-1 border border-green-600 text-green-600 hover:bg-green-50 py-2 rounded-xl text-sm transition">💬 Chat</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
     }
 
-    function searchForDriver() {
-        alert("✅ Mos yuklar topildi! (80+ ta yukdan filter orqali tanlandi)");
+    function filterDriverLoads() {
+        const from = document.getElementById('dFrom').value;
+        const to = document.getElementById('dTo').value;
+        renderDriverLoads(from, to);
     }
 
-    function submitLoad(e) {
-        e.preventDefault();
-        alert("✅ Yuk muvaffaqiyatli joylashtirildi!");
-        backToHome();
+    function showDriverLoadDetail(id) {
+        const load = allLoads.find(l => l.id === id);
+        if (!load) return;
+
+        const html = `
+      <img src="${load.image}" class="w-full h-56 object-cover rounded-xl mb-4" onerror="this.src='https://picsum.photos/600/400'">
+      <h2 class="text-2xl font-bold">${load.from} → ${load.to}</h2>
+      <p class="text-green-600 text-3xl font-bold mt-2">${(load.price / 1000000).toFixed(1)} mln so‘m</p>
+
+      <div class="grid grid-cols-2 gap-4 my-5 py-4 border-y border-gray-100">
+        <div>
+          <p class="text-gray-500 text-sm">Og'irligi</p>
+          <p class="font-semibold text-lg">⚖️ ${load.weight} tonna</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-sm">Kategoriya</p>
+          <p class="font-semibold text-lg">📦 ${load.category}</p>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <p class="text-gray-500 text-sm mb-2">Yuk haqida</p>
+        <p class="text-gray-700">${load.description}</p>
+      </div>
+
+      <div class="flex gap-3">
+        <a href="tel:+998934567890" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl text-center font-semibold transition">
+          📞 Qo‘ng‘iroq qilish
+        </a>
+        <button onclick="closeDriverLoadDetailModal(); openChatModal('load', ${load.id})" class="flex-1 border-2 border-green-600 text-green-600 hover:bg-green-50 py-3 rounded-xl font-semibold transition">
+          💬 Chat
+        </button>
+      </div>
+    `;
+
+        document.getElementById('driverLoadDetailContent').innerHTML = html;
+        document.getElementById('driverLoadDetailModal').style.display = 'flex';
     }
 
-    window.onload = () => {
-        generate80Loads();
-        console.log("%cYukbor.uz to'liq yuklandi! ✅", "color:#00B140; font-size:18px; font-weight:bold");
-    };
+    function closeDriverLoadDetailModal() {
+        document.getElementById('driverLoadDetailModal').style.display = 'none';
+    }
+
+    // ============ YUK BERUVCHI UCHUN ============
+    function filterShipperData() {
+        const myCity = document.getElementById('shipperCity').value;
+        const fromFilter = document.getElementById('sFromFilter').value;
+        const toFilter = document.getElementById('sToFilter').value;
+
+        renderShipperLoads(myCity, fromFilter, toFilter);
+        renderShipperDrivers(myCity);
+    }
+
+    function renderShipperLoads(myCity, fromFilter, toFilter) {
+        const container = document.getElementById('shipperLoadsList');
+
+        let filtered = allLoads.filter(load => load.from === myCity);
+        if (fromFilter) filtered = filtered.filter(l => l.from === fromFilter);
+        if (toFilter) filtered = filtered.filter(l => l.to === toFilter);
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="text-center py-8 bg-white rounded-2xl">
+        <i class="fas fa-chart-line text-4xl text-gray-300 mb-2"></i>
+        <p class="text-gray-500">${myCity} shahridan chiqadigan yuklar topilmadi</p>
+      </div>`;
+            return;
+        }
+
+        filtered.sort((a, b) => (a.price / a.weight) - (b.price / b.weight));
+
+        container.innerHTML = filtered.map(load => {
+            const pricePerTon = Math.round(load.price / parseFloat(load.weight) / 1000);
+            return `
+        <div class="load-card bg-white rounded-xl shadow-md p-4 border-l-4 border-green-500 cursor-pointer" onclick="showLoadDetailModal(${load.id})">
+          <div class="flex justify-between items-start">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-2 flex-wrap">
+                <span class="font-bold text-gray-800">${load.from}</span>
+                <i class="fas fa-arrow-right text-green-600 text-sm"></i>
+                <span class="font-bold text-gray-800">${load.to}</span>
+                <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">${load.category}</span>
+              </div>
+              <p class="text-gray-500 text-sm">⚖️ ${load.weight} tonna</p>
+            </div>
+            <div class="text-right">
+              <p class="text-2xl font-bold text-green-600">${(load.price / 1000000).toFixed(1)} mln</p>
+              <p class="text-xs text-gray-400">so'm</p>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-gray-100">
+            <p class="text-xs text-gray-400">💰 1 tonna: ${pricePerTon} ming so'm</p>
+          </div>
+        </div>
+      `;
+        }).join('');
+    }
+
+    function showLoadDetailModal(id) {
+        const load = allLoads.find(l => l.id === id);
+        if (!load) return;
+
+        const pricePerTon = Math.round(load.price / parseFloat(load.weight) / 1000);
+
+        const html = `
+      <img src="${load.image}" class="w-full h-56 object-cover rounded-xl mb-4" onerror="this.src='https://picsum.photos/600/400'">
+      <h2 class="text-2xl font-bold">${load.from} → ${load.to}</h2>
+      <p class="text-green-600 text-3xl font-bold mt-2">${(load.price / 1000000).toFixed(1)} mln so‘m</p>
+      <p class="text-gray-500 text-sm mt-1">💰 1 tonna narxi: ${pricePerTon} ming so'm</p>
+
+      <div class="grid grid-cols-2 gap-4 my-5 py-4 border-y border-gray-100">
+        <div>
+          <p class="text-gray-500 text-sm">Og'irligi</p>
+          <p class="font-semibold text-lg">⚖️ ${load.weight} tonna</p>
+        </div>
+        <div>
+          <p class="text-gray-500 text-sm">Kategoriya</p>
+          <p class="font-semibold text-lg">📦 ${load.category}</p>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-gray-500 text-sm mb-2">Yuk haqida</p>
+        <p class="text-gray-700">${load.description}</p>
+      </div>
+    `;
+
+        document.getElementById('loadDetailContent').innerHTML = html;
+        document.getElementById('loadDetailModal').style.display = 'flex';
+    }
+
+    function closeLoadDetailModal() {
+        document.getElementById('loadDetailModal').style.display = 'none';
+    }
+
+    // ============ SHOFYORLAR ============
+    function renderShipperDrivers(myCity) {
+        const container = document.getElementById('shipperDriversList');
+
+        let filtered = allDrivers.filter(driver => driver.city === myCity);
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="text-center py-8 bg-white rounded-2xl">
+        <i class="fas fa-truck text-4xl text-gray-300 mb-2"></i>
+        <p class="text-gray-500">${myCity} shahrida faol shofyorlar topilmadi</p>
+      </div>`;
+            return;
+        }
+
+        container.innerHTML = filtered.map(driver => `
+      <div class="driver-card bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer" onclick="showDriverDetailModal(${driver.id})">
+        <div class="flex p-4 gap-4">
+          <img src="${driver.avatar}" class="w-20 h-20 rounded-full object-cover" onerror="this.src='https://randomuser.me/api/portraits/men/1.jpg'">
+          <div class="flex-1">
+            <div class="flex justify-between items-start">
+              <div>
+                <h4 class="font-bold text-lg">${driver.name}</h4>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-yellow-500">★</span>
+                  <span class="font-semibold">${driver.rating}</span>
+                  <span class="text-gray-400 text-sm">• ${driver.completedOrders} ta buyurtma</span>
+                  ${driver.verified ? '<span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">✓ Tasdiqlangan</span>' : ''}
+                </div>
+              </div>
+              <i class="fas fa-chevron-right text-green-600"></i>
+            </div>
+            <div class="flex items-center gap-3 mt-2 text-sm text-gray-500">
+              <span><i class="fas fa-truck"></i> ${driver.truckModel}</span>
+              <span><i class="fas fa-briefcase"></i> ${driver.experience}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    }
+
+    function showDriverDetailModal(id) {
+        const driver = allDrivers.find(d => d.id === id);
+        if (!driver) return;
+
+        const html = `
+      <div class="text-center mb-4">
+        <img src="${driver.avatar}" class="w-28 h-28 rounded-full mx-auto object-cover border-4 border-green-500">
+        <h2 class="text-2xl font-bold mt-3">${driver.name}</h2>
+        <div class="flex items-center justify-center gap-2 mt-1">
+          <span class="text-yellow-500">★</span>
+          <span class="font-semibold">${driver.rating}</span>
+          <span class="text-gray-400">• ${driver.completedOrders} ta buyurtma</span>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div class="bg-gray-50 rounded-xl p-4">
+          <p class="text-gray-500 text-sm mb-2">📞 Aloqa</p>
+          <a href="tel:${driver.phone}" class="text-green-600 font-semibold text-lg">${driver.phone}</a>
+        </div>
+
+        <div class="bg-gray-50 rounded-xl p-4">
+          <p class="text-gray-500 text-sm mb-2">🚛 Mashina haqida</p>
+          <p class="font-semibold">${driver.truckModel}</p>
+          <p class="text-gray-600">Yili: ${driver.truckYear} • Yuk ko'taruvi: ${driver.truckCapacity}</p>
+          <p class="text-green-600 text-sm mt-1">✓ ${driver.truckCondition}</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-xl p-4">
+          <p class="text-gray-500 text-sm mb-2">💼 Tajriba va ma'lumot</p>
+          <p class="font-semibold">${driver.experience} tajriba</p>
+          <p class="text-gray-600 mt-1">${driver.about}</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-xl p-4">
+          <img src="${driver.truckImage}" class="w-full h-40 object-cover rounded-xl" onerror="this.src='https://picsum.photos/400/300'">
+          <p class="text-center text-gray-500 text-sm mt-2">Mashina rasmi</p>
+        </div>
+      </div>
+    `;
+
+        document.getElementById('driverDetailContent').innerHTML = html;
+        document.getElementById('driverDetailModal').style.display = 'flex';
+    }
+
+    function closeDriverDetailModal() {
+        document.getElementById('driverDetailModal').style.display = 'none';
+    }
+
+    // ============ CHAT ============
+    function openChatModal(type, id) {
+        if (type === 'load') {
+            currentChatItem = allLoads.find(l => l.id === id);
+            document.getElementById('chatModalTitle').innerHTML = `${currentChatItem.from} → ${currentChatItem.to} yuk egasi`;
+        }
+
+        const key = `chat_${type}_${id}`;
+        const saved = localStorage.getItem(key);
+        currentChatMessages = saved ? JSON.parse(saved) : [];
+
+        renderChatMessages();
+        document.getElementById('chatModal').style.display = 'flex';
+        document.getElementById('chatModalInput').focus();
+    }
+
+    function renderChatMessages() {
+        const container = document.getElementById('chatModalMessages');
+
+        if (currentChatMessages.length === 0) {
+            container.innerHTML = `<div class="text-center py-10 text-gray-400">
+        <i class="fas fa-comment-dots text-5xl mb-3"></i>
+        <p>Hozircha xabarlar yo'q</p>
+        <p class="text-sm mt-1">Birinchi xabarni yozing!</p>
+      </div>`;
+            return;
+        }
+
+        container.innerHTML = currentChatMessages.map(msg => `
+      <div class="flex ${msg.isMine ? 'justify-end' : 'justify-start'}">
+        <div class="max-w-[75%] ${msg.isMine ? 'bg-green-500 text-white' : 'bg-white border border-gray-200'} rounded-2xl px-4 py-2 shadow-sm">
+          <p class="text-sm">${escapeHtml(msg.text)}</p>
+          <p class="text-xs ${msg.isMine ? 'text-green-100' : 'text-gray-400'} mt-1">${msg.time}</p>
+        </div>
+      </div>
+    `).join('');
+
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function sendModalMessage() {
+        const input = document.getElementById('chatModalInput');
+        const text = input.value.trim();
+        if (!text || !currentChatItem) return;
+
+        const msg = {
+            text: text,
+            isMine: true,
+            time: new Date().toLocaleTimeString('uz', { hour: '2-digit', minute: '2-digit' })
+        };
+
+        currentChatMessages.push(msg);
+        const key = `chat_load_${currentChatItem.id}`;
+        localStorage.setItem(key, JSON.stringify(currentChatMessages));
+
+        input.value = '';
+        renderChatMessages();
+
+        setTimeout(() => {
+            const reply = {
+                text: "Assalomu alaykum! Yordam kerakmi?",
+                isMine: false,
+                time: new Date().toLocaleTimeString('uz', { hour: '2-digit', minute: '2-digit' })
+            };
+            currentChatMessages.push(reply);
+            localStorage.setItem(key, JSON.stringify(currentChatMessages));
+            renderChatMessages();
+        }, 1000);
+    }
+
+    function closeChatModal() {
+        document.getElementById('chatModal').style.display = 'none';
+        currentChatItem = null;
+        currentChatMessages = [];
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Global functions
+    window.selectType = selectType;
+    window.backToType = backToType;
+    window.filterDriverLoads = filterDriverLoads;
+    window.showDriverLoadDetail = showDriverLoadDetail;
+    window.closeDriverLoadDetailModal = closeDriverLoadDetailModal;
+    window.filterShipperData = filterShipperData;
+    window.showLoadDetailModal = showLoadDetailModal;
+    window.closeLoadDetailModal = closeLoadDetailModal;
+    window.showDriverDetailModal = showDriverDetailModal;
+    window.closeDriverDetailModal = closeDriverDetailModal;
+    window.openChatModal = openChatModal;
+    window.sendModalMessage = sendModalMessage;
+    window.closeChatModal = closeChatModal;
+
+    // Start
+    init();
 </script>
 </body>
 </html>

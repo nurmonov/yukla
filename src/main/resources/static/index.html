@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yukbor.uz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; }
+        .page { display: none; }
+        .active { display: block; }
+        .card { transition: all 0.3s ease; }
+        .card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.15); }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+<!-- LOGIN -->
+<div id="loginPage" class="page active min-h-screen flex items-center justify-center bg-gradient-to-br from-green-600 to-emerald-700">
+    <div class="max-w-md w-full mx-4 bg-white rounded-3xl shadow-2xl p-8">
+        <h1 class="text-5xl font-bold text-green-600 text-center">Yukbor</h1>
+        <p class="text-center text-gray-600 mt-2">O‘zbekistonda yuk bozori</p>
+
+        <input type="tel" id="phoneInput" value="+998950750402" class="w-full mt-10 border-2 border-gray-300 rounded-2xl px-5 py-4 text-lg text-center">
+        <button onclick="sendCode()" class="w-full bg-green-600 text-white py-4 rounded-2xl text-lg font-semibold mt-6">Kirish</button>
+
+        <div id="codeSection" class="hidden mt-6">
+            <input type="text" id="codeInput" maxlength="6" placeholder="123456" class="w-full text-4xl text-center tracking-widest border-2 border-gray-300 rounded-2xl py-6">
+            <button onclick="verifyCode()" class="w-full bg-green-600 text-white py-4 rounded-2xl mt-4 text-lg font-semibold">Tasdiqlash</button>
+        </div>
+    </div>
+</div>
+
+<!-- USER TYPE -->
+<div id="typePage" class="page min-h-screen flex items-center justify-center bg-gray-50">
+    <div class="max-w-md w-full mx-4">
+        <h2 class="text-3xl font-bold text-center mb-10">Kim bo'lib kirayapsiz?</h2>
+        <div class="grid grid-cols-2 gap-6">
+            <button onclick="selectType('shipper')" class="bg-white border-2 border-green-600 rounded-3xl p-10 hover:bg-green-50">
+                <i class="fas fa-box text-6xl text-green-600 mb-4"></i>
+                <p class="font-semibold text-xl">Yuk beruvchi</p>
+            </button>
+            <button onclick="selectType('driver')" class="bg-white border-2 border-green-600 rounded-3xl p-10 hover:bg-green-50">
+                <i class="fas fa-truck text-6xl text-green-600 mb-4"></i>
+                <p class="font-semibold text-xl">Haydovchi</p>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" class="hidden">
+
+    <!-- HAYDOVCHI -->
+    <div id="driverHome" class="page active max-w-2xl mx-auto px-4 pt-6">
+        <h2 class="text-2xl font-bold">Salom, Rustam! 👋</h2>
+        <p class="text-gray-600">Mos yuklarni qidirish</p>
+
+        <div class="bg-white rounded-3xl shadow p-6 mt-6 space-y-5">
+            <div class="grid grid-cols-2 gap-4">
+                <select id="dFrom" class="border rounded-2xl px-4 py-4"><option value="">Qayerdan</option><option>Toshkent</option><option>Andijon</option><option>Samarqand</option><option>Farg‘ona</option></select>
+                <select id="dTo" class="border rounded-2xl px-4 py-4"><option value="">Qayerga</option><option>Toshkent</option><option>Andijon</option><option>Samarqand</option><option>Farg‘ona</option></select>
+            </div>
+            <select id="dCategory" class="w-full border rounded-2xl px-4 py-4">
+                <option value="">Barcha kategoriyalar</option>
+                <option>Umumiy yuk</option><option>Oziq-ovqat</option><option>Qurilish</option><option>Sovutgichli</option><option>Hayvonlar</option>
+            </select>
+            <div class="flex gap-4">
+                <input type="number" id="minTon" value="5" class="flex-1 border rounded-2xl px-4 py-4" placeholder="Min tonna">
+                <input type="number" id="maxTon" value="25" class="flex-1 border rounded-2xl px-4 py-4" placeholder="Max tonna">
+            </div>
+            <button onclick="searchForDriver()" class="w-full bg-green-600 text-white py-5 rounded-3xl text-lg font-semibold">Yuklarni qidirish</button>
+        </div>
+    </div>
+
+    <!-- YUK BERUVCHI -->
+    <div id="shipperHome" class="page max-w-2xl mx-auto px-4 pt-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">Barcha yuklar (80+ ta)</h2>
+            <button onclick="showPage('createLoad')" class="bg-green-600 text-white px-6 py-3 rounded-2xl">+ Yuk qo‘yish</button>
+        </div>
+        <div id="loadsList" class="space-y-4"></div>
+    </div>
+
+    <!-- YUK QO‘YISH -->
+    <div id="createLoad" class="page max-w-2xl mx-auto px-4 pt-4">
+        <button onclick="backToHome()" class="text-2xl mb-4"><i class="fas fa-arrow-left"></i></button>
+        <h2 class="text-2xl font-bold mb-6">Yangi yuk qo‘yish</h2>
+        <form onsubmit="submitLoad(event)" class="space-y-6">
+            <input type="text" id="title" placeholder="Yuk nomi" class="w-full border rounded-2xl px-5 py-4" required>
+            <select id="category" class="w-full border rounded-2xl px-5 py-4">
+                <option>Umumiy yuk</option><option>Oziq-ovqat</option><option>Qurilish</option><option>Sovutgichli</option><option>Hayvonlar</option>
+            </select>
+            <div class="grid grid-cols-2 gap-4">
+                <input type="number" id="weight" step="0.1" placeholder="Tonna" class="border rounded-2xl px-5 py-4" required>
+                <input type="number" id="price" placeholder="Narx (so‘m)" class="border rounded-2xl px-5 py-4" required>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <select id="fromCity" class="border rounded-2xl px-5 py-4"><option>Toshkent</option><option>Andijon</option></select>
+                <select id="toCity" class="border rounded-2xl px-5 py-4"><option>Samarqand</option><option>Farg‘ona</option></select>
+            </div>
+            <button type="submit" class="w-full bg-green-600 text-white py-6 rounded-3xl text-xl font-bold">E’lonni joylashtirish</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentType = "";
+    let allLoads = [];
+
+    function generate80Loads() {
+        const cities = ["Toshkent", "Andijon", "Samarqand", "Farg‘ona"];
+        const categories = ["Umumiy yuk", "Oziq-ovqat", "Qurilish", "Sovutgichli", "Hayvonlar"];
+        allLoads = [];
+        let id = 1;
+        for (let from of cities) {
+            for (let to of cities) {
+                if (from === to) continue;
+                for (let i = 0; i < 20; i++) {
+                    allLoads.push({
+                        id: id++,
+                        from: from,
+                        to: to,
+                        weight: (5 + Math.random() * 25).toFixed(1),
+                        price: Math.floor(2500000 + Math.random() * 7000000),
+                        category: categories[Math.floor(Math.random() * categories.length)],
+                        image: `https://picsum.photos/id/${100 + id}/600/400`
+                    });
+                }
+            }
+        }
+    }
+
+    function renderLoads() {
+        const container = document.getElementById("loadsList");
+        container.innerHTML = "";
+        allLoads.slice(0, 15).forEach(load => {
+            const html = `
+          <div class="card bg-white rounded-3xl shadow p-5">
+            <img src="${load.image}" class="w-full h-48 object-cover rounded-2xl mb-4">
+            <p class="text-xl font-bold">${load.from} → ${load.to}</p>
+            <p class="text-gray-500">${load.category} • ${load.weight} tonna</p>
+            <p class="text-2xl font-bold text-green-600 mt-2">${(load.price/1000000).toFixed(1)} mln</p>
+            <div class="flex gap-3 mt-5">
+              <a href="tel:+998934567890" class="flex-1 bg-green-600 text-white py-3 rounded-2xl text-center">📞 Qo‘ng‘iroq</a>
+              <button onclick="openChat()" class="flex-1 border border-green-600 text-green-600 py-3 rounded-2xl">💬 Chat</button>
+            </div>
+          </div>`;
+            container.innerHTML += html;
+        });
+    }
+
+    function openChat() {
+        alert("💬 Chat oynasi ochildi (keyingi bosqichda to'liq chat qo'shamiz)");
+    }
+
+    function sendCode() {
+        document.getElementById("codeSection").classList.remove("hidden");
+    }
+
+    function verifyCode() {
+        if (document.getElementById("codeInput").value === "123456") {
+            document.getElementById("loginPage").classList.add("hidden");
+            document.getElementById("typePage").classList.add("active");
+        } else {
+            alert("To'g'ri kod: 123456");
+        }
+    }
+
+    function selectType(type) {
+        currentType = type;
+        document.getElementById("typePage").classList.remove("active");
+        document.getElementById("mainApp").classList.remove("hidden");
+
+        if (type === "driver") showPage("driverHome");
+        else {
+            showPage("shipperHome");
+            renderLoads();
+        }
+    }
+
+    function showPage(page) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(page).classList.add('active');
+    }
+
+    function backToHome() {
+        showPage(currentType === "driver" ? "driverHome" : "shipperHome");
+    }
+
+    function searchForDriver() {
+        alert("✅ Mos yuklar topildi! (80+ ta yukdan filter orqali tanlandi)");
+    }
+
+    function submitLoad(e) {
+        e.preventDefault();
+        alert("✅ Yuk muvaffaqiyatli joylashtirildi!");
+        backToHome();
+    }
+
+    window.onload = () => {
+        generate80Loads();
+        console.log("%cYukbor.uz to'liq yuklandi! ✅", "color:#00B140; font-size:18px; font-weight:bold");
+    };
+</script>
+</body>
+</html>

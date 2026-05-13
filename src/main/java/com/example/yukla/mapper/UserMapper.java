@@ -3,9 +3,7 @@ package com.example.yukla.mapper;
 import com.example.yukla.dto.UserCreateRequest;
 import com.example.yukla.dto.UserResponse;
 import com.example.yukla.entity.User;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 
 import java.util.List;
 
@@ -14,11 +12,13 @@ public interface UserMapper {
 
     User toEntity(UserCreateRequest request);
 
+    @Named("basicUser")
     UserResponse toResponse(User user);
 
-    @Mapping(target = "displayName", expression = "java(user.getFirstName() + ' ' + user.getLastName())")
+    @Named("displayNameUser")
+    @Mapping(target = "displayName", expression = "java(user.getFirstName() + \" \" + user.getLastName())")
     UserResponse toResponseWithDisplayName(User user);
 
-    // List uchun
+    @IterableMapping(qualifiedByName = "basicUser")
     List<UserResponse> toResponseList(List<User> users);
 }

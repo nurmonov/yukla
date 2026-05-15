@@ -2,6 +2,7 @@ package com.example.yukla.mapper;
 
 import com.example.yukla.dto.UserCreateRequest;
 import com.example.yukla.dto.UserResponse;
+import com.example.yukla.dto.UserUpdateRequest;
 import com.example.yukla.entity.User;
 import org.mapstruct.*;
 
@@ -21,4 +22,8 @@ public interface UserMapper {
 
     @IterableMapping(qualifiedByName = "basicUser")
     List<UserResponse> toResponseList(List<User> users);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "password", ignore = true)   // Parolni faqat xizmatda hash qilamiz
+    void updateEntity(UserUpdateRequest request, @MappingTarget User user);
 }

@@ -31,13 +31,13 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(keyBytes).getEncoded();
     }
 
-    public String generateToken(UserDetails userDetails) {
-        User user = (User) userDetails;
-
+    public String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", user.getId());
         claims.put("phone", user.getPhone());
-        claims.put("fullName", user.getFirstName() + " " + user.getLastName());
+        claims.put("displayName", user.getDisplayName() != null ?
+                user.getDisplayName() : user.getFirstName() + " " + user.getLastName());
+        claims.put("userType", user.getUserType().name());
         claims.put("roles", user.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList()));
@@ -58,6 +58,14 @@ public class JwtUtil {
         }
         return claims.getSubject();
     }
+//    public String getPhoneFromToken(String token) {
+//        return Jwts.builder()
+//                .setSigningKey(getSigningKey())
+//                .build()
+//                .parseClaimsJws(token)
+//                .getBody()
+//                .getSubject();
+//    }
 
     public Integer extractUserId(String token) {
         Claims claims = extractAllClaims(token);

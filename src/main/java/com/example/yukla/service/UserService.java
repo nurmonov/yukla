@@ -72,30 +72,45 @@ public class UserService {
     }
 
     public UserResponse updateUser(Long id, UserUpdateRequest request, User currentUser) {
-
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Foydalanuvchi topilmadi"));
 
-        // Agar oddiy foydalanuvchi o'zini yangilayotgan bo'lsa, ba'zi cheklovlarni qo'yish mumkin
-        // Hozircha admin yoki o'zi bo'lsa hamma narsani o'zgartirishga ruxsat beramiz
         if (!currentUser.getId().equals(id) && currentUser.getUserType() != UserType.ADMIN) {
-            throw new RuntimeException("Siz faqat o'z profilingizni yangilashingiz mumkin");
+            throw new RuntimeException("Faqat o'z ma'lumotlaringizni yangilashingiz mumkin");
         }
 
-        // Mapper orqali yangilash (hamma maydonlar)
         userMapper.updateEntity(request, user);
 
-        // Parol alohida ishlov beriladi
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
-        // Transliteration qayta qo'llash (ism o'zgargan bo'lsa)
-        applyTransliteration(user);
+        applyTransliteration(user);     // ← Bu yerda chaqiramiz
 
-        User updatedUser = userRepository.save(user);
-        return userMapper.toResponse(updatedUser);
+        User saved = userRepository.save(user);
+        return userMapper.toResponse(saved);
     }
+
+    public UserResponse patchUser(Long id, UserUpdateRequest request, User currentUser) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Foydalanuvchi topilmadi"));
+
+        if (!currentUser.getId().equals(id) && currentUser.getUserType() != UserType.ADMIN) {
+            throw new RuntimeException("Faqat o'z ma'lumotlaringizni yangilashingiz mumkin");
+        }
+
+        userMapper.patchEntity(request, user);
+
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
+        applyTransliteration(user);     // ← Bu yerda ham chaqiramiz
+
+        User saved = userRepository.save(user);
+        return userMapper.toResponse(saved);
+    }
+
 
     // ==================== DELETE ====================
     public void deleteUser(Long id, User currentUser) {
@@ -111,17 +126,28 @@ public class UserService {
 
     // ==================== YORDAMCHI METOD ====================
     private void applyTransliteration(User user) {
-        if (user.getFirstName() != null) {
-            user.setFirstNameRu(transliterator.toCyrillic(user.getFirstName()));
-            user.setFirstNameEn(user.getFirstName()); // hozircha lotincha
+        transliterator.autoTranslate(user);
+
+        // Display name ni lotincha qilamiz
+        if (user.getDisplayName() == null || user.getDisplayName().isBlank()) {
+            user.setDisplayName(user.getFirstNameEn() + " " + user.getLastNameEn());
         }
-        if (user.getLastName() != null) {
-            user.setLastNameRu(transliterator.toCyrillic(user.getLastName()));
-            user.setLastNameEn(user.getLastName());
+    }
+
+    public UserResponse changeUserRole(Long id, ChangeRoleRequest request, User currentUser) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Foydalanuvchi topilmadi"));
+
+        // Faqat ADMIN o'zgartira oladi
+        if (currentUser.getUserType() != UserType.ADMIN) {
+            throw new RuntimeException("Foydalanuvchi rolini faqat Admin o'zgartira oladi");
         }
-        if (user.getDisplayName() == null || user.getDisplayName().isEmpty()) {
-            user.setDisplayName(user.getFirstName() + " " + user.getLastName());
-        }
+
+        user.setUserType(request.getUserType());
+        User saved = userRepository.save(user);
+
+
+        return userMapper.toResponse(saved);
     }
 
     // Qo'shimcha qulay metod

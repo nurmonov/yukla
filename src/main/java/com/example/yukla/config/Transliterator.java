@@ -1,12 +1,19 @@
 package com.example.yukla.config;
 
+import com.example.yukla.entity.User;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @Component
 public class Transliterator {
 
+
+    private static final Pattern LATIN_PATTERN = Pattern.compile("[a-zA-Zo'ğʻshchngO'G'ShChNg]", Pattern.CASE_INSENSITIVE);
+
+    // Kirillcha belgilari
+    private static final Pattern CYRILLIC_PATTERN = Pattern.compile("[а-яА-ЯёЁўЎғҒҳҲқҚ]", Pattern.CASE_INSENSITIVE);
     // Lotin → Kirill
     private static final Map<String, String> LATIN_TO_CYRILLIC = Map.ofEntries(
             Map.entry("a", "а"), Map.entry("b", "б"), Map.entry("d", "д"),
@@ -54,47 +61,57 @@ public class Transliterator {
      */
     public String toCyrillic(String text) {
         if (text == null || text.isBlank()) return text;
-
         String result = text.toLowerCase();
-        for (Map.Entry<String, String> entry : LATIN_TO_CYRILLIC.entrySet()) {
+        for (var entry : LATIN_TO_CYRILLIC.entrySet()) {
             result = result.replace(entry.getKey(), entry.getValue());
         }
-
-        // Birinchi harfni katta qilish
-        if (!result.isEmpty()) {
-            result = result.substring(0, 1).toUpperCase() + result.substring(1);
-        }
-        return result;
+        return capitalize(result);
     }
 
-    /**
-     * Kirill → Lotin
-     */
     public String toLatin(String text) {
         if (text == null || text.isBlank()) return text;
-
         String result = text.toLowerCase();
-        for (Map.Entry<String, String> entry : CYRILLIC_TO_LATIN.entrySet()) {
+        for (var entry : CYRILLIC_TO_LATIN.entrySet()) {
             result = result.replace(entry.getKey(), entry.getValue());
         }
-
-        if (!result.isEmpty()) {
-            result = result.substring(0, 1).toUpperCase() + result.substring(1);
-        }
-        return result;
+        return capitalize(result);
     }
 
-    /**
-     * Avtomatik aniqlash va o‘tkazish
-     */
-    public String autoTransliterate(String text) {
-        if (text == null || text.isBlank()) return text;
+    private String capitalize(String str) {
+        if (str.isEmpty()) return str;
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
 
-        // Agar matnda kirill harflari bo‘lsa
-        if (text.matches(".*[а-яА-ЯёЁўЎғҒҳҲқҚ].*")) {
-            return toLatin(text);
-        } else {
-            return toCyrillic(text);
+    public boolean isCyrillic(String text) {
+        return text != null && CYRILLIC_PATTERN.matcher(text).find();
+    }
+
+    /** Eng muhim metod */
+    public void autoTranslate(User user) {
+        if (user == null) return;
+
+        // First Name
+        if (user.getFirstName() != null) {
+            String name = user.getFirstName().trim();
+            if (isCyrillic(name)) {
+                user.setFirstNameRu(name);
+                user.setFirstNameEn(toLatin(name));
+            } else {
+                user.setFirstNameEn(name);
+                user.setFirstNameRu(toCyrillic(name));
+            }
+        }
+
+        // Last Name
+        if (user.getLastName() != null) {
+            String name = user.getLastName().trim();
+            if (isCyrillic(name)) {
+                user.setLastNameRu(name);
+                user.setLastNameEn(toLatin(name));
+            } else {
+                user.setLastNameEn(name);
+                user.setLastNameRu(toCyrillic(name));
+            }
         }
     }
 }

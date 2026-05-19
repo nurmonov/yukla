@@ -3,7 +3,6 @@ package com.example.yukla.security;
 import com.example.yukla.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -26,9 +26,9 @@ public class JwtUtil {
     @Value("${jwt.expiration:86400000}")
     private long expiration;
 
-    private byte[] getSigningKey() {
+    private Key getSigningKey() {
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(keyBytes).getEncoded();
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String generateToken(User user) {
@@ -47,61 +47,33 @@ public class JwtUtil {
                 .setSubject(user.getPhone())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(SignatureAlgorithm.HS256, getSigningKey())
+                .signWith(getSigningKey())
                 .compact();
     }
 
+    private Claims extractAllClaims(String token) {
+
+                return Jwts.parser()
+                        .setSigningKey(getSigningKey().getEncoded())
+                        .build()
+                        .parseClaimsJws(token)
+                        .getBody();
+
+    }
+
+
+
     public String extractUsername(String token) {
         Claims claims = extractAllClaims(token);
-        if (claims == null) {
-            return null;
-        }
-        return claims.getSubject();
-    }
-//    public String getPhoneFromToken(String token) {
-//        return Jwts.builder()
-//                .setSigningKey(getSigningKey())
-//                .build()
-//                .parseClaimsJws(token)
-//                .getBody()
-//                .getSubject();
-//    }
-
-    public Integer extractUserId(String token) {
-        Claims claims = extractAllClaims(token);
-        if (claims == null) {
-            return null;
-        }
-        return claims.get("userId", Integer.class);
-    }
-
-    public List<String> extractRoles(String token) {
-        Claims claims = extractAllClaims(token);
-        if (claims == null) {
-            return null;
-        }
-        return claims.get("roles", List.class);
+        return claims != null ? claims.getSubject() : null;
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
         Claims claims = extractAllClaims(token);
-        if (claims == null) {
-            return false;
-        }
-        final String username = claims.getSubject();
-        return username.equals(userDetails.getUsername()) && !claims.getExpiration().before(new Date());
-    }
+        if (claims == null) return false;
 
-    private Claims extractAllClaims(String token) {
-        try {
-            return Jwts.parser()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-        } catch (Exception e) {
-            System.out.println("Token parse xatosi: " + e.getMessage());
-            return null;
-        }
+        final String username = claims.getSubject();
+        return username.equals(userDetails.getUsername()) &&
+                !claims.getExpiration().before(new Date());
     }
 }

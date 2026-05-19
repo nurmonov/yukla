@@ -24,6 +24,13 @@ public interface UserMapper {
     List<UserResponse> toResponseList(List<User> users);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "password", ignore = true)   // Parolni faqat xizmatda hash qilamiz
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "phone", ignore = true)        // telefonni himoya qilamiz
+    void patchEntity(UserUpdateRequest request, @MappingTarget User user);
+
+    // PUT uchun (ixtiyoriy)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "phone", ignore = true)
     void updateEntity(UserUpdateRequest request, @MappingTarget User user);
 }

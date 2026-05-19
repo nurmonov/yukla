@@ -31,51 +31,55 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
 
+        String path = request.getServletPath();
+        log.info("🔍 Filter ishlamoqda. Path: {}", path);
+
         String authHeader = request.getHeader("Authorization");
+        log.info("📌 Authorization Header: {}", authHeader);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.info("⏭️ Token yo'q yoki noto'g'ri format - filter o'tkazib yuborildi");
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authHeader.substring(7);
+        String token = authHeader.substring(7).trim();
+        log.info("🔑 Extracted Token: {}", token.substring(0, Math.min(token.length(), 50)) + "...");
 
         try {
             String username = jwtUtil.extractUsername(token);
+            log.info("👤 Extracted Username: {}", username);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                log.info("✅ UserDetails topildi: {}", userDetails.getUsername());
 
-                if (jwtUtil.validateToken(token, userDetails)) {
+                boolean isValid = jwtUtil.validateToken(token, userDetails);
+                log.info("✅ Token validmi? {}", isValid);
+
+                if (isValid) {
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    log.info("🎉 Muvaffaqiyatli autentifikatsiya: {}", username);
+                } else {
+                    log.warn("❌ Token valid emas!");
                 }
             }
-        } catch (ExpiredJwtException e) {
-            log.warn("JWT token muddati tugagan");
-            response.setStatus(401);
-            response.getWriter().write("Token muddati tugagan");
-            return;
         } catch (Exception e) {
-            log.error("JWT filterda xato: {}", e.getMessage());
-            response.setStatus(401);
-            response.getWriter().write("Token tekshirishda xato");
-            return;
+            log.error("🚨 Filterda katta xato: {}", e.getMessage(), e);
         }
 
         filterChain.doFilter(request, response);
     }
-
+    // FAQAT login va register ni filterdan chetlab o'tkazamiz
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
-        return path.startsWith("/api/auth/") ||
-                path.startsWith("/swagger-ui/") ||
-                path.startsWith("/v3/api-docs/") ||
-                path.startsWith("/uploads/") ||
-                path.startsWith("/api/files/download/");
+        return path.startsWith("/api/auth/register") ||
+                path.startsWith("/api/auth/login") ||
+                path.startsWith("/swagger-ui") ||
+                path.startsWith("/v3/api-docs");
     }
 }

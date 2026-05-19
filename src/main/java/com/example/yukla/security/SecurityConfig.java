@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -31,7 +29,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("*"));           // Production da o'zgartiring
+        config.setAllowedOrigins(List.of("*"));
         config.setAllowedMethods(List.of("*"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));
@@ -53,45 +51,36 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
-                        // Public yo'llar
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(
-                                "/api/auth/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/swagger-resources/**",
-                                "/webjars/**",
-                                "/uploads/**",
-                                "/api/users/**"
-                        ).permitAll()
+                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
 
-                        // Admin yo'llari
-                        .requestMatchers("/api/users/**").hasRole("ADMIN")
+                        // Swagger
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
+                                "/swagger-resources/**", "/webjars/**").permitAll()
 
-                        // Boshqa barcha so'rovlar autentifikatsiyani talab qiladi
+                        // Rasmlar
+                        .requestMatchers("/uploads/**").permitAll()
+
+                        // QOLGAN HAMMA API — TOKEN TALAB QILADI
                         .anyRequest().authenticated()
                 )
 
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(401);
-                            response.getWriter().write("Token yoki login noto'g'ri");
+                        .authenticationEntryPoint((req, res, ex1) -> {
+                            res.setContentType("application/json");
+                            res.setStatus(401);
+                            res.getWriter().write("{\"error\": \"Token kerak yoki noto'g'ri\"}");
                         })
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            response.setStatus(403);
-                            response.getWriter().write("Ruxsat yo'q");
+                        .accessDeniedHandler((req, res, ex1) -> {
+                            res.setContentType("application/json");
+                            res.setStatus(403);
+                            res.getWriter().write("{\"error\": \"Ruxsat yo'q\"}");
                         })
                 )
 
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
     }
 
     @Bean

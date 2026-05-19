@@ -26,6 +26,7 @@ public class AuthService {
             throw new RuntimeException("Bu telefon raqami allaqachon ro‘yxatdan o‘tgan");
         }
 
+        // User yaratish
         User user = User.builder()
                 .phone(request.getPhone())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -35,17 +36,11 @@ public class AuthService {
                 .enabled(true)
                 .build();
 
-        // ==================== AVTOMATIK TRANSLITERATSIYA ====================
-        if (request.getFirstName() != null) {
-            user.setFirstNameRu(transliterator.toCyrillic(request.getFirstName()));
-            user.setFirstNameEn(request.getFirstName()); // hozircha lotincha
-        }
-        if (request.getLastName() != null) {
-            user.setLastNameRu(transliterator.toCyrillic(request.getLastName()));
-            user.setLastNameEn(request.getLastName());
-        }
+        applyTransliteration(user);
 
-        user.setDisplayName(request.getFirstName() + " " + request.getLastName());
+        if (user.getDisplayName() == null || user.getDisplayName().isBlank()) {
+            user.setDisplayName(user.getFirstNameEn() + " " + user.getLastNameEn());
+        }
 
         User savedUser = userRepository.save(user);
 
@@ -82,5 +77,13 @@ public class AuthService {
                 .displayName(user.getDisplayName())
                 .userType(user.getUserType())
                 .build();
+    }
+
+    private void applyTransliteration(User user) {
+        transliterator.autoTranslate(user);
+
+        if (user.getDisplayName() == null || user.getDisplayName().isBlank()) {
+            user.setDisplayName(user.getFirstNameEn() + " " + user.getLastNameEn());
+        }
     }
 }

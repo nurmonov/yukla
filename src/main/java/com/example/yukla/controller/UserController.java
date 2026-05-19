@@ -1,5 +1,6 @@
 package com.example.yukla.controller;
 
+import com.example.yukla.dto.ChangeRoleRequest;
 import com.example.yukla.dto.UserCreateRequest;
 import com.example.yukla.dto.UserResponse;
 import com.example.yukla.dto.UserUpdateRequest;
@@ -47,6 +48,10 @@ public class UserController {
     public ResponseEntity<List<UserResponse>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
+    @GetMapping("/reload")
+    public ResponseEntity<User> reload(@AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(userService.getCurrentUser(currentUser));
+    }
 
     // Sahifalangan holda olish (admin uchun)
     @GetMapping("/page")
@@ -64,15 +69,7 @@ public class UserController {
         UserResponse response = userService.updateUser(id, request, currentUser);
         return ResponseEntity.ok(response);
     }
-    @PatchMapping("/{id}")
-    public ResponseEntity<UserResponse> patchUser(
-            @PathVariable Long id,
-            @RequestBody UserUpdateRequest request,
-            @AuthenticationPrincipal User currentUser) {
 
-        UserResponse response = userService.updateUser(id, request, currentUser); // Xuddi shu metod ishlatiladi
-        return ResponseEntity.ok(response);
-    }
 
     // ==================== DELETE ====================
     @DeleteMapping("/{id}")
@@ -84,6 +81,23 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<UserResponse> patchUser(
+            @PathVariable Long id,
+            @RequestBody UserUpdateRequest request,
+            @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(userService.patchUser(id, request, currentUser));
+    }
+
+    // ==================== ROLE / USERTYPE ALMASHTIRISH ====================
+    @PatchMapping("/{id}/role")
+    public ResponseEntity<UserResponse> changeUserRole(
+            @PathVariable Long id,
+            @RequestBody ChangeRoleRequest request,
+            @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(userService.changeUserRole(id, request, currentUser));
+    }
     // ==================== Qo'shimcha metodlar ====================
 
     // Telefon raqami bo'yicha tekshirish

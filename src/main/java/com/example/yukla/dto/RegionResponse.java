@@ -6,15 +6,12 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class CityResponse {
+public class RegionResponse {
     private Integer id;
     private String nameUz;
     private String nameRu;
     private String nameEn;
-    private Integer regionId;
-    private String regionNameUz;   // qulaylik uchun
-//    private Double latitude;
-//    private Double longitude;
+    private String countryCode;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

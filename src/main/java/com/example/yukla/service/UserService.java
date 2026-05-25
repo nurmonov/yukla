@@ -48,7 +48,7 @@ public class UserService {
     }
 
     // ==================== READ ====================
-    public UserResponse getUserById(Long id) {
+    public UserResponse getUserById(Integer id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Foydalanuvchi topilmadi"));
         return userMapper.toResponse(user);
@@ -71,7 +71,7 @@ public class UserService {
                 .map(userMapper::toResponse);
     }
 
-    public UserResponse updateUser(Long id, UserUpdateRequest request, User currentUser) {
+    public UserResponse updateUser(Integer id, UserUpdateRequest request, User currentUser) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Foydalanuvchi topilmadi"));
 
@@ -91,7 +91,7 @@ public class UserService {
         return userMapper.toResponse(saved);
     }
 
-    public UserResponse patchUser(Long id, UserUpdateRequest request, User currentUser) {
+    public UserResponse patchUser(Integer id, UserUpdateRequest request, User currentUser) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Foydalanuvchi topilmadi"));
 
@@ -113,7 +113,7 @@ public class UserService {
 
 
     // ==================== DELETE ====================
-    public void deleteUser(Long id, User currentUser) {
+    public void deleteUser(Integer id, User currentUser) {
         if (!currentUser.getId().equals(id) && currentUser.getUserType() != UserType.ADMIN) {
             throw new RuntimeException("Faqat o'zingizni yoki admin o'chirishi mumkin");
         }
@@ -134,7 +134,7 @@ public class UserService {
         }
     }
 
-    public UserResponse changeUserRole(Long id, ChangeRoleRequest request, User currentUser) {
+    public UserResponse changeUserRole(Integer id, ChangeRoleRequest request, User currentUser) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Foydalanuvchi topilmadi"));
 

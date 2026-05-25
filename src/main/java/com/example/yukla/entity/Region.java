@@ -16,13 +16,14 @@ public class Region {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false)
+    @Column(nullable = false,unique = true)
     private String nameUz;
 
     private String nameRu;
     private String nameEn;
 
-    private String code;   // SUR, TASH, AND va h.k.
+    @Column(nullable = false, length = 2)
+    private String countryCode;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

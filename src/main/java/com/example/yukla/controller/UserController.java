@@ -39,7 +39,7 @@ public class UserController {
 
     // ID bo'yicha ma'lumot olish
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Integer id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
@@ -62,7 +62,7 @@ public class UserController {
     // ==================== UPDATE ====================
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(
-            @PathVariable Long id,
+            @PathVariable Integer id,
             @RequestBody UserUpdateRequest request,
             @AuthenticationPrincipal User currentUser) {
 
@@ -74,7 +74,7 @@ public class UserController {
     // ==================== DELETE ====================
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(
-            @PathVariable Long id,
+            @PathVariable Integer id,
             @AuthenticationPrincipal User currentUser) {
 
         userService.deleteUser(id, currentUser);
@@ -84,7 +84,7 @@ public class UserController {
 
     @PatchMapping("/{id}")
     public ResponseEntity<UserResponse> patchUser(
-            @PathVariable Long id,
+            @PathVariable Integer id,
             @RequestBody UserUpdateRequest request,
             @AuthenticationPrincipal User currentUser) {
         return ResponseEntity.ok(userService.patchUser(id, request, currentUser));
@@ -93,7 +93,7 @@ public class UserController {
     // ==================== ROLE / USERTYPE ALMASHTIRISH ====================
     @PatchMapping("/{id}/role")
     public ResponseEntity<UserResponse> changeUserRole(
-            @PathVariable Long id,
+            @PathVariable Integer id,
             @RequestBody ChangeRoleRequest request,
             @AuthenticationPrincipal User currentUser) {
         return ResponseEntity.ok(userService.changeUserRole(id, request, currentUser));

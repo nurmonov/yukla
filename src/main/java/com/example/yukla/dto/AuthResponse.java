@@ -9,7 +9,7 @@ import lombok.Data;
 @Builder
 public class AuthResponse {
     private String token;
-    private Long userId;
+    private Integer userId;
     private String phone;
     private String displayName;
     private UserType userType;

@@ -25,7 +25,7 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(unique = true, nullable = false, length = 20)
     private String phone;
@@ -62,7 +62,6 @@ public class User implements UserDetails {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    // ==================== UserDetails metodlari ====================
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

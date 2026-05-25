@@ -16,7 +16,7 @@ public class LoadBooking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "load_id", nullable = false)
@@ -29,7 +29,7 @@ public class LoadBooking {
     @Enumerated(EnumType.STRING)
     private BookingStatus status = BookingStatus.PENDING;
 
-    private Long agreedPrice;
+    private Integer agreedPrice;
 
     private LocalDateTime bookedAt;
     private LocalDateTime deliveredAt;

@@ -3,6 +3,7 @@ package com.example.yukla.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -29,4 +30,9 @@ public class District {
 
     private String nameRu;
     private String nameEn;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+
 }

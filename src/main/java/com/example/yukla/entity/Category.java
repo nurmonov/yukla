@@ -3,6 +3,7 @@ package com.example.yukla.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -23,6 +24,12 @@ public class Category {
     private String nameEn;
 
     private String code;           // REEFER, GENERAL, CONSTRUCTION
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
     private boolean isActive = true;
 }

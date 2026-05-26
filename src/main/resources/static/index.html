@@ -2,10 +2,14 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="theme-color" content="#1976d2">
+    <meta name="description" content="Yukbor.uz - O'zbekiston yuk tashish platformasi">
     <title>Yukbor.uz - Yuk tashish platformasi</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+    <!-- Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
     <style>
         * {
             margin: 0;
@@ -14,826 +18,1324 @@
         }
 
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: #f3f4f6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+            'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+            sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background: #f5f5f5;
         }
 
-        .page {
+        /* Loading Spinner */
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 48px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 4px;
+            color: white;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast-success { background: #4caf50; }
+        .toast-error { background: #f44336; }
+        .toast-info { background: #2196f3; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Header */
+        .header {
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            height: 64px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1976d2;
+            cursor: pointer;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 8px 12px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-item.active {
+            color: #1976d2;
+            border-bottom: 2px solid #1976d2;
+        }
+
+        .nav-item.logout {
+            color: #f44336;
+        }
+
+        .mobile-menu-btn {
             display: none;
-            min-height: 100vh;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
         }
 
-        .page.active {
-            display: block;
+        .mobile-menu {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            right: 0;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
         }
 
+        /* Cards */
         .card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .card:active {
-            transform: scale(0.98);
-        }
-
-        .chat-messages {
-            scroll-behavior: smooth;
-        }
-
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #e5e7eb;
+            background: white;
             border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: #10b981;
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
             border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 200px;
         }
 
-        .bg-gradient {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        .stat-card-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
+        .stat-icon { font-size: 32px; }
+        .stat-title { color: #666; font-size: 14px; margin-bottom: 5px; }
+        .stat-value { font-size: 24px; font-weight: bold; }
+
+        /* Table */
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            background: #f5f5f5;
+            border-bottom: 2px solid #ddd;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Status Badge */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .badge-active { background: #e8f5e9; color: #4caf50; }
+        .badge-completed { background: #e3f2fd; color: #2196f3; }
+        .badge-cancelled { background: #ffebee; color: #f44336; }
+        .badge-admin { background: #fff3e0; color: #ff9800; }
+        .badge-user { background: #e8f5e9; color: #4caf50; }
+
+        /* Modal */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
+            background: rgba(0,0,0,0.5);
             display: flex;
-            align-items: flex-end;
+            align-items: center;
             justify-content: center;
-            animation: fadeIn 0.3s ease;
+            z-index: 1000;
+            padding: 20px;
         }
 
         .modal-content {
             background: white;
-            border-radius: 30px 30px 0 0;
-            max-width: 500px;
+            border-radius: 10px;
+            padding: 24px;
             width: 100%;
+            max-width: 500px;
             max-height: 90vh;
             overflow-y: auto;
-            animation: slideUp 0.3s ease;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        /* Form */
+        .form-group {
+            margin-bottom: 15px;
         }
 
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
         }
 
-        .driver-card, .load-card {
-            transition: all 0.3s ease;
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
         }
 
-        .driver-card:active, .load-card:active {
-            transform: scale(0.98);
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
         }
+
+        .btn-primary {
+            background: #1976d2;
+            color: white;
+        }
+
+        .btn-primary:hover { background: #1565c0; }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover { background: #da190b; }
+
+        .btn-secondary {
+            background: #ddd;
+            color: #333;
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 24px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #1976d2;
+            color: white;
+        }
+
+        .pagination button:disabled {
+            background: #ddd;
+            cursor: not-allowed;
+        }
+
+        .pagination .page-info {
+            padding: 8px 12px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+
+        /* Search */
+        .search-box {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            width: 250px;
+        }
+
+        /* Page Container */
+        .page-container {
+            padding: 80px 24px 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .page-title {
+            color: #333;
+        }
+
+        /* Profile Avatar */
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #1976d2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-menu { display: none; }
+            .mobile-menu-btn { display: block; }
+            .card-grid { grid-template-columns: 1fr; }
+            .stats-grid { flex-direction: column; }
+            .search-box { width: 100%; }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-menu { display: none !important; }
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            margin: 0 4px;
+        }
+
+        .action-edit { color: #1976d2; }
+        .action-delete { color: #f44336; }
+
+        /* Flex utilities */
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .flex {
+            display: flex;
+            gap: 12px;
+        }
+
+        .mt-20 { margin-top: 20px; }
+        .mb-20 { margin-bottom: 20px; }
+        .text-center { text-align: center; }
     </style>
 </head>
 <body>
+<div id="root"></div>
 
-<!-- USER TYPE SELECTION -->
-<div id="typePage" class="page active min-h-screen flex items-center justify-center bg-gradient px-4">
-    <div class="max-w-md w-full">
-        <div class="text-center mb-10">
-            <i class="fas fa-truck text-7xl text-white mb-4"></i>
-            <h1 class="text-5xl font-extrabold text-white mb-2">Yukbor</h1>
-            <p class="text-green-100 text-lg">O‘zbekistonning ishonchli yuk tashish platformasi</p>
-        </div>
+<script src="https://unpkg.com/react@18.2.0/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/react-router-dom@6.14.0/umd/react-router-dom.development.js"></script>
+<script src="https://unpkg.com/axios@1.4.0/dist/axios.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-        <div class="bg-white rounded-3xl shadow-2xl p-8">
-            <div class="text-center mb-6">
-                <i class="fas fa-hand-peace text-4xl text-green-600 mb-2"></i>
-                <h2 class="text-2xl font-bold text-gray-800">Xush kelibsiz!</h2>
-                <p class="text-gray-500 mt-1">Iltimos, rolingizni tanlang</p>
-            </div>
+<script type="text/babel">
+    // ==================== API Service ====================
+    const API_BASE_URL = 'http://localhost:8080/api';
 
-            <div class="grid grid-cols-2 gap-4">
-                <button onclick="selectType('driver')"
-                        class="group bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-600 rounded-2xl p-6 hover:shadow-xl transition transform hover:-translate-y-1">
-                    <i class="fas fa-truck text-5xl text-green-600 group-hover:scale-110 transition inline-block mb-3"></i>
-                    <p class="font-bold text-lg text-gray-800">Haydovchi</p>
-                    <p class="text-xs text-gray-500 mt-1">Yuk topaman</p>
-                </button>
+    const api = axios.create({
+        baseURL: API_BASE_URL,
+        headers: { 'Content-Type': 'application/json' }
+    });
 
-                <button onclick="selectType('shipper')"
-                        class="group bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-600 rounded-2xl p-6 hover:shadow-xl transition transform hover:-translate-y-1">
-                    <i class="fas fa-chart-line text-5xl text-green-600 group-hover:scale-110 transition inline-block mb-3"></i>
-                    <p class="font-bold text-lg text-gray-800">Yuk beruvchi</p>
-                    <p class="text-xs text-gray-500 mt-1">Narxlar va shofyorlar</p>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+    api.interceptors.request.use(config => {
+        const token = localStorage.getItem('token');
+        if (token) config.headers.Authorization = `Bearer ${token}`;
+        return config;
+    });
 
-<!-- MAIN APP CONTAINER -->
-<div id="mainApp" class="hidden">
+    api.interceptors.response.use(
+        response => response,
+        error => {
+            if (error.response?.status === 401) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login';
+            }
+            return Promise.reject(error);
+        }
+    );
 
-    <!-- ========== HAYDOVCHI SAHIFASI ========== -->
-    <div id="driverHome" class="page">
-        <div class="max-w-2xl mx-auto px-4 pt-5 pb-20">
-            <div class="flex items-center justify-between mb-6">
-                <button onclick="backToType()" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200">
-                    <i class="fas fa-sign-out-alt text-gray-600"></i>
-                </button>
-                <div class="text-center">
-                    <i class="fas fa-truck text-2xl text-green-600"></i>
-                    <h2 class="text-xl font-bold">Haydovchi paneli</h2>
-                </div>
-                <div class="w-10"></div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-lg p-5 mb-6">
-                <h3 class="font-semibold text-gray-700 mb-3">🔍 Yuk filtrlash</h3>
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <select id="dFrom" class="border border-gray-200 rounded-xl px-4 py-3 focus:border-green-500 focus:outline-none">
-                        <option value="">Qayerdan</option>
-                        <option>Toshkent</option><option>Andijon</option><option>Samarqand</option>
-                        <option>Farg'ona</option><option>Buxoro</option><option>Namangan</option>
-                    </select>
-                    <select id="dTo" class="border border-gray-200 rounded-xl px-4 py-3 focus:border-green-500 focus:outline-none">
-                        <option value="">Qayerga</option>
-                        <option>Toshkent</option><option>Andijon</option><option>Samarqand</option>
-                        <option>Farg'ona</option><option>Buxoro</option><option>Namangan</option>
-                    </select>
-                </div>
-                <button onclick="filterDriverLoads()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition">
-                    <i class="fas fa-search mr-2"></i> Filtrlash
-                </button>
-            </div>
-
-            <h3 class="font-bold text-lg text-gray-700 mb-3">📦 Mavjud yuklar</h3>
-            <div id="driverLoadsList" class="space-y-4"></div>
-        </div>
-    </div>
-
-    <!-- ========== YUK BERUVCHI SAHIFASI ========== -->
-    <div id="shipperHome" class="page">
-        <div class="max-w-2xl mx-auto px-4 pt-5 pb-20">
-            <div class="flex items-center justify-between mb-6">
-                <button onclick="backToType()" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200">
-                    <i class="fas fa-sign-out-alt text-gray-600"></i>
-                </button>
-                <div class="text-center">
-                    <i class="fas fa-chart-line text-2xl text-green-600"></i>
-                    <h2 class="text-xl font-bold">Narxlar va shofyorlar</h2>
-                    <p class="text-xs text-gray-500">Bozor monitoringi</p>
-                </div>
-                <div class="w-10"></div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-lg p-5 mb-6">
-                <h3 class="font-semibold text-gray-700 mb-3">📍 Shahringizni tanlang</h3>
-                <select id="shipperCity" onchange="filterShipperData()" class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-green-500 focus:outline-none">
-                    <option value="Toshkent">Toshkent</option>
-                    <option value="Andijon">Andijon</option>
-                    <option value="Samarqand">Samarqand</option>
-                    <option value="Farg'ona">Farg'ona</option>
-                    <option value="Buxoro">Buxoro</option>
-                    <option value="Namangan">Namangan</option>
-                </select>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-lg p-5 mb-6">
-                <h3 class="font-semibold text-gray-700 mb-3">🎯 Yo'nalish bo'yicha filtr</h3>
-                <div class="grid grid-cols-2 gap-3">
-                    <select id="sFromFilter" onchange="filterShipperData()" class="border border-gray-200 rounded-xl px-4 py-3">
-                        <option value="">Qayerdan</option>
-                        <option>Toshkent</option><option>Andijon</option><option>Samarqand</option>
-                        <option>Farg'ona</option><option>Buxoro</option><option>Namangan</option>
-                    </select>
-                    <select id="sToFilter" onchange="filterShipperData()" class="border border-gray-200 rounded-xl px-4 py-3">
-                        <option value="">Qayerga</option>
-                        <option>Toshkent</option><option>Andijon</option><option>Samarqand</option>
-                        <option>Farg'ona</option><option>Buxoro</option><option>Namangan</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="mb-8">
-                <h3 class="font-bold text-lg text-gray-700 mb-3 flex items-center gap-2">
-                    <i class="fas fa-box text-green-600"></i> Yuk narxlari
-                </h3>
-                <div id="shipperLoadsList" class="space-y-3"></div>
-            </div>
-
-            <div>
-                <h3 class="font-bold text-lg text-gray-700 mb-3 flex items-center gap-2">
-                    <i class="fas fa-users text-green-600"></i> Ishonchli shofyorlar
-                </h3>
-                <div id="shipperDriversList" class="space-y-4"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL: Yuk batafsil (yuk beruvchi uchun) -->
-<div id="loadDetailModal" class="modal-overlay" style="display: none;" onclick="closeLoadDetailModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="sticky top-0 bg-white border-b px-5 py-4 flex justify-between items-center">
-            <h3 class="font-bold text-xl">Yuk batafsil</h3>
-            <button onclick="closeLoadDetailModal()" class="w-8 h-8 bg-gray-100 rounded-full">
-                <i class="fas fa-times text-gray-600"></i>
-            </button>
-        </div>
-        <div id="loadDetailContent" class="p-5"></div>
-    </div>
-</div>
-
-<!-- MODAL: Shofyor batafsil -->
-<div id="driverDetailModal" class="modal-overlay" style="display: none;" onclick="closeDriverDetailModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="sticky top-0 bg-white border-b px-5 py-4 flex justify-between items-center">
-            <h3 class="font-bold text-xl">Shofyor ma'lumotlari</h3>
-            <button onclick="closeDriverDetailModal()" class="w-8 h-8 bg-gray-100 rounded-full">
-                <i class="fas fa-times text-gray-600"></i>
-            </button>
-        </div>
-        <div id="driverDetailContent" class="p-5"></div>
-    </div>
-</div>
-
-<!-- MODAL: Haydovchi uchun yuk batafsil -->
-<div id="driverLoadDetailModal" class="modal-overlay" style="display: none;" onclick="closeDriverLoadDetailModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="sticky top-0 bg-white border-b px-5 py-4 flex justify-between items-center">
-            <h3 class="font-bold text-xl">Yuk ma'lumotlari</h3>
-            <button onclick="closeDriverLoadDetailModal()" class="w-8 h-8 bg-gray-100 rounded-full">
-                <i class="fas fa-times text-gray-600"></i>
-            </button>
-        </div>
-        <div id="driverLoadDetailContent" class="p-5"></div>
-    </div>
-</div>
-
-<!-- CHAT MODAL -->
-<div id="chatModal" class="modal-overlay" style="display: none;" onclick="closeChatModal()">
-    <div class="modal-content" onclick="event.stopPropagation()" style="height: 80vh; display: flex; flex-direction: column;">
-        <div class="sticky top-0 bg-white border-b px-5 py-4 flex justify-between items-center">
-            <div>
-                <h3 id="chatModalTitle" class="font-bold">Chat</h3>
-                <p class="text-xs text-green-600">● Online</p>
-            </div>
-            <button onclick="closeChatModal()" class="w-8 h-8 bg-gray-100 rounded-full">
-                <i class="fas fa-times text-gray-600"></i>
-            </button>
-        </div>
-        <div id="chatModalMessages" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
-        <div class="bg-white border-t px-4 py-3">
-            <div class="flex gap-2">
-                <input type="text" id="chatModalInput" placeholder="Xabar yozing..."
-                       class="flex-1 border border-gray-200 rounded-full px-5 py-3 focus:outline-none focus:border-green-500"
-                       onkeypress="if(event.key === 'Enter') sendModalMessage()">
-                <button onclick="sendModalMessage()" class="bg-green-600 hover:bg-green-700 text-white w-12 h-12 rounded-full transition">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    // ============ DATA ============
-    let currentType = "";
-    let allLoads = [];
-    let allDrivers = [];
-    let currentChatItem = null;
-    let currentChatMessages = [];
-    let nextId = 100;
-
-    const CITIES = ["Toshkent", "Andijon", "Samarqand", "Farg'ona", "Buxoro", "Namangan"];
-    const CATEGORIES = ["Umumiy yuk", "Oziq-ovqat", "Qurilish", "Sovutgichli", "Hayvonlar"];
-
-    const DRIVER_DATA = [
-        {
-            id: 1,
-            name: "Jasur Aliyev",
-            phone: "+998901234567",
-            experience: "8 yil",
-            rating: 4.9,
-            truckModel: "MAN TGS 18.440",
-            truckYear: 2021,
-            truckCondition: "A'lo holatda",
-            truckCapacity: "22 tonna",
-            truckImage: "https://picsum.photos/id/123/600/400",
-            avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-            completedOrders: 1245,
-            city: "Toshkent",
-            verified: true,
-            about: "8 yillik tajriba. Barcha hujjatlar to'liq."
+    // ==================== Auth Service ====================
+    const authService = {
+        async login(phone, password) {
+            const response = await api.post('/auth/login', { phone, password });
+            if (response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('user', JSON.stringify(response.data));
+            }
+            return response.data;
         },
-        {
-            id: 2,
-            name: "Sherzod Karimov",
-            phone: "+998902345678",
-            experience: "5 yil",
-            rating: 4.7,
-            truckModel: "Volvo FH 500",
-            truckYear: 2020,
-            truckCondition: "Yaxshi holatda",
-            truckCapacity: "20 tonna",
-            truckImage: "https://picsum.photos/id/124/600/400",
-            avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-            completedOrders: 876,
-            city: "Samarqand",
-            verified: true,
-            about: "5 yillik tajriba. Qisqa va uzoq masofalar."
+        async register(userData) {
+            const response = await api.post('/auth/register', userData);
+            if (response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('user', JSON.stringify(response.data));
+            }
+            return response.data;
         },
-        {
-            id: 3,
-            name: "Bobur Rahimov",
-            phone: "+998903456789",
-            experience: "12 yil",
-            rating: 5.0,
-            truckModel: "Scania R450",
-            truckYear: 2022,
-            truckCondition: "A'lo holatda",
-            truckCapacity: "25 tonna",
-            truckImage: "https://picsum.photos/id/125/600/400",
-            avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-            completedOrders: 2341,
-            city: "Toshkent",
-            verified: true,
-            about: "12 yillik tajriba. Eng og'ir yuklar bo'yicha mutaxassis."
+        logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
         },
-        {
-            id: 4,
-            name: "Dilshod Tursunov",
-            phone: "+998904567890",
-            experience: "3 yil",
-            rating: 4.5,
-            truckModel: "Kamaz 5490",
-            truckYear: 2019,
-            truckCondition: "Yaxshi holatda",
-            truckCapacity: "18 tonna",
-            truckImage: "https://picsum.photos/id/126/600/400",
-            avatar: "https://randomuser.me/api/portraits/men/4.jpg",
-            completedOrders: 432,
-            city: "Andijon",
-            verified: false,
-            about: "3 yillik tajriba. Mahalliy yo'nalishlar."
+        getCurrentUser() {
+            const userStr = localStorage.getItem('user');
+            return userStr ? JSON.parse(userStr) : null;
         },
-        {
-            id: 5,
-            name: "Azizbek Mamatov",
-            phone: "+998905678901",
-            experience: "10 yil",
-            rating: 4.8,
-            truckModel: "Mercedes Actros 1845",
-            truckYear: 2021,
-            truckCondition: "A'lo holatda",
-            truckCapacity: "24 tonna",
-            truckImage: "https://picsum.photos/id/127/600/400",
-            avatar: "https://randomuser.me/api/portraits/men/5.jpg",
-            completedOrders: 1890,
-            city: "Buxoro",
-            verified: true,
-            about: "10 yillik tajriba. Xalqaro standartlar."
+        isAuthenticated() {
+            return !!localStorage.getItem('token');
         }
-    ];
+    };
 
-    // ============ INIT ============
-    function init() {
-        const saved = localStorage.getItem('yukbor_loads');
-        if (saved) {
-            allLoads = JSON.parse(saved);
-            nextId = Math.max(...allLoads.map(l => l.id), 99) + 1;
-        } else {
-            generateSampleLoads();
+    // ==================== Load Service ====================
+    const loadService = {
+        async getAll() {
+            const response = await api.get('/loads');
+            return response.data;
+        },
+        async getPage(page = 0, size = 10) {
+            const response = await api.get(`/loads/page?page=${page}&size=${size}`);
+            return response.data;
+        },
+        async getById(id) {
+            const response = await api.get(`/loads/${id}`);
+            return response.data;
+        },
+        async create(data) {
+            const response = await api.post('/loads', data);
+            return response.data;
+        },
+        async update(id, data) {
+            const response = await api.put(`/loads/${id}`, data);
+            return response.data;
+        },
+        async delete(id) {
+            await api.delete(`/loads/${id}`);
+        },
+        async getMyLoads() {
+            const response = await api.get('/loads/me');
+            return response.data;
         }
+    };
 
-        const savedDrivers = localStorage.getItem('yukbor_drivers');
-        if (savedDrivers) {
-            allDrivers = JSON.parse(savedDrivers);
-        } else {
-            allDrivers = DRIVER_DATA;
-            localStorage.setItem('yukbor_drivers', JSON.stringify(allDrivers));
+    // ==================== User Service ====================
+    const userService = {
+        async getAll() {
+            const response = await api.get('/users');
+            return response.data;
+        },
+        async getPage(page = 0, size = 10) {
+            const response = await api.get(`/users/page?page=${page}&size=${size}`);
+            return response.data;
+        },
+        async getMe() {
+            const response = await api.get('/users/me');
+            return response.data;
+        },
+        async create(data) {
+            const response = await api.post('/users', data);
+            return response.data;
+        },
+        async update(id, data) {
+            const response = await api.put(`/users/${id}`, data);
+            return response.data;
+        },
+        async patch(id, data) {
+            const response = await api.patch(`/users/${id}`, data);
+            return response.data;
+        },
+        async delete(id) {
+            await api.delete(`/users/${id}`);
         }
-    }
+    };
 
-    function generateSampleLoads() {
-        for (let i = 1; i <= 30; i++) {
-            let from = CITIES[Math.floor(Math.random() * CITIES.length)];
-            let to = CITIES[Math.floor(Math.random() * CITIES.length)];
-            while (to === from) to = CITIES[Math.floor(Math.random() * CITIES.length)];
-
-            allLoads.push({
-                id: i,
-                from: from,
-                to: to,
-                weight: (2 + Math.random() * 28).toFixed(1),
-                price: Math.floor(1000000 + Math.random() * 9000000),
-                category: CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)],
-                title: `${from} dan ${to} ga yuk tashish`,
-                description: `${from} shahridan ${to} shahriga yuk tashish kerak. Yuk holati yaxshi.`,
-                image: `https://picsum.photos/id/${150 + i}/600/400`,
-                createdAt: new Date().toISOString()
-            });
+    // ==================== Category Service ====================
+    const categoryService = {
+        async getAll() {
+            const response = await api.get('/categories');
+            return response.data;
+        },
+        async create(data) {
+            const response = await api.post('/categories', data);
+            return response.data;
+        },
+        async update(id, data) {
+            const response = await api.put(`/categories/${id}`, data);
+            return response.data;
+        },
+        async delete(id) {
+            await api.delete(`/categories/${id}`);
         }
-        saveLoads();
-    }
+    };
 
-    function saveLoads() {
-        localStorage.setItem('yukbor_loads', JSON.stringify(allLoads));
-    }
+    // ==================== Toast Utility ====================
+    const showToast = (message, type = 'success') => {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    };
 
-    // ============ USER TYPE ============
-    function selectType(type) {
-        currentType = type;
-        document.getElementById('typePage').classList.remove('active');
-        document.getElementById('mainApp').classList.remove('hidden');
+    // ==================== Loading Component ====================
+    const LoadingSpinner = () => (
+        <div className="loading-container">
+            <div className="spinner"></div>
+        </div>
+    );
 
-        if (type === 'driver') {
-            document.getElementById('driverHome').classList.add('active');
-            renderDriverLoads();
-        } else {
-            document.getElementById('shipperHome').classList.add('active');
-            filterShipperData();
+    // ==================== Empty State Component ====================
+    const EmptyState = ({ message, icon = '📭' }) => (
+        <div className="empty-state">
+            <div className="empty-state-icon">{icon}</div>
+            <p>{message}</p>
+        </div>
+    );
+
+    // ==================== Private Route Component ====================
+    const PrivateRoute = ({ children }) => {
+        const [user, setUser] = React.useState(null);
+        const [loading, setLoading] = React.useState(true);
+
+        React.useEffect(() => {
+            setUser(authService.getCurrentUser());
+            setLoading(false);
+        }, []);
+
+        if (loading) return <LoadingSpinner />;
+        if (!user) {
+            window.location.href = '/login';
+            return null;
         }
-    }
+        return children;
+    };
 
-    function backToType() {
-        if (confirm("Chiqishni xohlaysizmi?")) {
-            currentType = "";
-            document.getElementById('mainApp').classList.add('hidden');
-            document.getElementById('typePage').classList.add('active');
-        }
-    }
+    // ==================== Header Component ====================
+    const Header = () => {
+        const [user, setUser] = React.useState(null);
+        const [menuOpen, setMenuOpen] = React.useState(false);
+        const navigate = (path) => { window.location.href = path; };
 
-    // ============ HAYDOVCHI UCHUN ============
-    function renderDriverLoads(filterFrom = '', filterTo = '') {
-        const container = document.getElementById('driverLoadsList');
-        let filtered = [...allLoads];
-        if (filterFrom) filtered = filtered.filter(l => l.from === filterFrom);
-        if (filterTo) filtered = filtered.filter(l => l.to === filterTo);
+        React.useEffect(() => {
+            setUser(authService.getCurrentUser());
+        }, []);
 
-        if (filtered.length === 0) {
-            container.innerHTML = `<div class="text-center py-10 bg-white rounded-2xl">
-        <i class="fas fa-search text-5xl text-gray-300 mb-3"></i>
-        <p class="text-gray-500">Hech qanday yuk topilmadi</p>
-      </div>`;
-            return;
-        }
-
-        container.innerHTML = filtered.map(load => `
-      <div class="bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition" onclick="showDriverLoadDetail(${load.id})">
-        <img src="${load.image}" class="w-full h-44 object-cover" onerror="this.src='https://picsum.photos/600/400'">
-        <div class="p-4">
-          <div class="flex justify-between items-start mb-2">
-            <h3 class="font-bold text-lg">${load.from} → ${load.to}</h3>
-            <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">${load.category}</span>
-          </div>
-          <p class="text-gray-500 text-sm">⚖️ ${load.weight} tonna</p>
-          <p class="text-2xl font-bold text-green-600 mt-2">${(load.price / 1000000).toFixed(1)} mln so‘m</p>
-          <div class="flex gap-2 mt-4">
-            <a href="tel:+998934567890" onclick="event.stopPropagation()" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-xl text-center text-sm transition">📞 Qo‘ng‘iroq</a>
-            <button onclick="event.stopPropagation(); openChatModal('load', ${load.id})" class="flex-1 border border-green-600 text-green-600 hover:bg-green-50 py-2 rounded-xl text-sm transition">💬 Chat</button>
-          </div>
-        </div>
-      </div>
-    `).join('');
-    }
-
-    function filterDriverLoads() {
-        const from = document.getElementById('dFrom').value;
-        const to = document.getElementById('dTo').value;
-        renderDriverLoads(from, to);
-    }
-
-    function showDriverLoadDetail(id) {
-        const load = allLoads.find(l => l.id === id);
-        if (!load) return;
-
-        const html = `
-      <img src="${load.image}" class="w-full h-56 object-cover rounded-xl mb-4" onerror="this.src='https://picsum.photos/600/400'">
-      <h2 class="text-2xl font-bold">${load.from} → ${load.to}</h2>
-      <p class="text-green-600 text-3xl font-bold mt-2">${(load.price / 1000000).toFixed(1)} mln so‘m</p>
-
-      <div class="grid grid-cols-2 gap-4 my-5 py-4 border-y border-gray-100">
-        <div>
-          <p class="text-gray-500 text-sm">Og'irligi</p>
-          <p class="font-semibold text-lg">⚖️ ${load.weight} tonna</p>
-        </div>
-        <div>
-          <p class="text-gray-500 text-sm">Kategoriya</p>
-          <p class="font-semibold text-lg">📦 ${load.category}</p>
-        </div>
-      </div>
-
-      <div class="mb-6">
-        <p class="text-gray-500 text-sm mb-2">Yuk haqida</p>
-        <p class="text-gray-700">${load.description}</p>
-      </div>
-
-      <div class="flex gap-3">
-        <a href="tel:+998934567890" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl text-center font-semibold transition">
-          📞 Qo‘ng‘iroq qilish
-        </a>
-        <button onclick="closeDriverLoadDetailModal(); openChatModal('load', ${load.id})" class="flex-1 border-2 border-green-600 text-green-600 hover:bg-green-50 py-3 rounded-xl font-semibold transition">
-          💬 Chat
-        </button>
-      </div>
-    `;
-
-        document.getElementById('driverLoadDetailContent').innerHTML = html;
-        document.getElementById('driverLoadDetailModal').style.display = 'flex';
-    }
-
-    function closeDriverLoadDetailModal() {
-        document.getElementById('driverLoadDetailModal').style.display = 'none';
-    }
-
-    // ============ YUK BERUVCHI UCHUN ============
-    function filterShipperData() {
-        const myCity = document.getElementById('shipperCity').value;
-        const fromFilter = document.getElementById('sFromFilter').value;
-        const toFilter = document.getElementById('sToFilter').value;
-
-        renderShipperLoads(myCity, fromFilter, toFilter);
-        renderShipperDrivers(myCity);
-    }
-
-    function renderShipperLoads(myCity, fromFilter, toFilter) {
-        const container = document.getElementById('shipperLoadsList');
-
-        let filtered = allLoads.filter(load => load.from === myCity);
-        if (fromFilter) filtered = filtered.filter(l => l.from === fromFilter);
-        if (toFilter) filtered = filtered.filter(l => l.to === toFilter);
-
-        if (filtered.length === 0) {
-            container.innerHTML = `<div class="text-center py-8 bg-white rounded-2xl">
-        <i class="fas fa-chart-line text-4xl text-gray-300 mb-2"></i>
-        <p class="text-gray-500">${myCity} shahridan chiqadigan yuklar topilmadi</p>
-      </div>`;
-            return;
-        }
-
-        filtered.sort((a, b) => (a.price / a.weight) - (b.price / b.weight));
-
-        container.innerHTML = filtered.map(load => {
-            const pricePerTon = Math.round(load.price / parseFloat(load.weight) / 1000);
-            return `
-        <div class="load-card bg-white rounded-xl shadow-md p-4 border-l-4 border-green-500 cursor-pointer" onclick="showLoadDetailModal(${load.id})">
-          <div class="flex justify-between items-start">
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2 flex-wrap">
-                <span class="font-bold text-gray-800">${load.from}</span>
-                <i class="fas fa-arrow-right text-green-600 text-sm"></i>
-                <span class="font-bold text-gray-800">${load.to}</span>
-                <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">${load.category}</span>
-              </div>
-              <p class="text-gray-500 text-sm">⚖️ ${load.weight} tonna</p>
-            </div>
-            <div class="text-right">
-              <p class="text-2xl font-bold text-green-600">${(load.price / 1000000).toFixed(1)} mln</p>
-              <p class="text-xs text-gray-400">so'm</p>
-            </div>
-          </div>
-          <div class="mt-3 pt-2 border-t border-gray-100">
-            <p class="text-xs text-gray-400">💰 1 tonna: ${pricePerTon} ming so'm</p>
-          </div>
-        </div>
-      `;
-        }).join('');
-    }
-
-    function showLoadDetailModal(id) {
-        const load = allLoads.find(l => l.id === id);
-        if (!load) return;
-
-        const pricePerTon = Math.round(load.price / parseFloat(load.weight) / 1000);
-
-        const html = `
-      <img src="${load.image}" class="w-full h-56 object-cover rounded-xl mb-4" onerror="this.src='https://picsum.photos/600/400'">
-      <h2 class="text-2xl font-bold">${load.from} → ${load.to}</h2>
-      <p class="text-green-600 text-3xl font-bold mt-2">${(load.price / 1000000).toFixed(1)} mln so‘m</p>
-      <p class="text-gray-500 text-sm mt-1">💰 1 tonna narxi: ${pricePerTon} ming so'm</p>
-
-      <div class="grid grid-cols-2 gap-4 my-5 py-4 border-y border-gray-100">
-        <div>
-          <p class="text-gray-500 text-sm">Og'irligi</p>
-          <p class="font-semibold text-lg">⚖️ ${load.weight} tonna</p>
-        </div>
-        <div>
-          <p class="text-gray-500 text-sm">Kategoriya</p>
-          <p class="font-semibold text-lg">📦 ${load.category}</p>
-        </div>
-      </div>
-
-      <div>
-        <p class="text-gray-500 text-sm mb-2">Yuk haqida</p>
-        <p class="text-gray-700">${load.description}</p>
-      </div>
-    `;
-
-        document.getElementById('loadDetailContent').innerHTML = html;
-        document.getElementById('loadDetailModal').style.display = 'flex';
-    }
-
-    function closeLoadDetailModal() {
-        document.getElementById('loadDetailModal').style.display = 'none';
-    }
-
-    // ============ SHOFYORLAR ============
-    function renderShipperDrivers(myCity) {
-        const container = document.getElementById('shipperDriversList');
-
-        let filtered = allDrivers.filter(driver => driver.city === myCity);
-
-        if (filtered.length === 0) {
-            container.innerHTML = `<div class="text-center py-8 bg-white rounded-2xl">
-        <i class="fas fa-truck text-4xl text-gray-300 mb-2"></i>
-        <p class="text-gray-500">${myCity} shahrida faol shofyorlar topilmadi</p>
-      </div>`;
-            return;
-        }
-
-        container.innerHTML = filtered.map(driver => `
-      <div class="driver-card bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer" onclick="showDriverDetailModal(${driver.id})">
-        <div class="flex p-4 gap-4">
-          <img src="${driver.avatar}" class="w-20 h-20 rounded-full object-cover" onerror="this.src='https://randomuser.me/api/portraits/men/1.jpg'">
-          <div class="flex-1">
-            <div class="flex justify-between items-start">
-              <div>
-                <h4 class="font-bold text-lg">${driver.name}</h4>
-                <div class="flex items-center gap-2 mt-1">
-                  <span class="text-yellow-500">★</span>
-                  <span class="font-semibold">${driver.rating}</span>
-                  <span class="text-gray-400 text-sm">• ${driver.completedOrders} ta buyurtma</span>
-                  ${driver.verified ? '<span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">✓ Tasdiqlangan</span>' : ''}
-                </div>
-              </div>
-              <i class="fas fa-chevron-right text-green-600"></i>
-            </div>
-            <div class="flex items-center gap-3 mt-2 text-sm text-gray-500">
-              <span><i class="fas fa-truck"></i> ${driver.truckModel}</span>
-              <span><i class="fas fa-briefcase"></i> ${driver.experience}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    `).join('');
-    }
-
-    function showDriverDetailModal(id) {
-        const driver = allDrivers.find(d => d.id === id);
-        if (!driver) return;
-
-        const html = `
-      <div class="text-center mb-4">
-        <img src="${driver.avatar}" class="w-28 h-28 rounded-full mx-auto object-cover border-4 border-green-500">
-        <h2 class="text-2xl font-bold mt-3">${driver.name}</h2>
-        <div class="flex items-center justify-center gap-2 mt-1">
-          <span class="text-yellow-500">★</span>
-          <span class="font-semibold">${driver.rating}</span>
-          <span class="text-gray-400">• ${driver.completedOrders} ta buyurtma</span>
-        </div>
-      </div>
-
-      <div class="space-y-4">
-        <div class="bg-gray-50 rounded-xl p-4">
-          <p class="text-gray-500 text-sm mb-2">📞 Aloqa</p>
-          <a href="tel:${driver.phone}" class="text-green-600 font-semibold text-lg">${driver.phone}</a>
-        </div>
-
-        <div class="bg-gray-50 rounded-xl p-4">
-          <p class="text-gray-500 text-sm mb-2">🚛 Mashina haqida</p>
-          <p class="font-semibold">${driver.truckModel}</p>
-          <p class="text-gray-600">Yili: ${driver.truckYear} • Yuk ko'taruvi: ${driver.truckCapacity}</p>
-          <p class="text-green-600 text-sm mt-1">✓ ${driver.truckCondition}</p>
-        </div>
-
-        <div class="bg-gray-50 rounded-xl p-4">
-          <p class="text-gray-500 text-sm mb-2">💼 Tajriba va ma'lumot</p>
-          <p class="font-semibold">${driver.experience} tajriba</p>
-          <p class="text-gray-600 mt-1">${driver.about}</p>
-        </div>
-
-        <div class="bg-gray-50 rounded-xl p-4">
-          <img src="${driver.truckImage}" class="w-full h-40 object-cover rounded-xl" onerror="this.src='https://picsum.photos/400/300'">
-          <p class="text-center text-gray-500 text-sm mt-2">Mashina rasmi</p>
-        </div>
-      </div>
-    `;
-
-        document.getElementById('driverDetailContent').innerHTML = html;
-        document.getElementById('driverDetailModal').style.display = 'flex';
-    }
-
-    function closeDriverDetailModal() {
-        document.getElementById('driverDetailModal').style.display = 'none';
-    }
-
-    // ============ CHAT ============
-    function openChatModal(type, id) {
-        if (type === 'load') {
-            currentChatItem = allLoads.find(l => l.id === id);
-            document.getElementById('chatModalTitle').innerHTML = `${currentChatItem.from} → ${currentChatItem.to} yuk egasi`;
-        }
-
-        const key = `chat_${type}_${id}`;
-        const saved = localStorage.getItem(key);
-        currentChatMessages = saved ? JSON.parse(saved) : [];
-
-        renderChatMessages();
-        document.getElementById('chatModal').style.display = 'flex';
-        document.getElementById('chatModalInput').focus();
-    }
-
-    function renderChatMessages() {
-        const container = document.getElementById('chatModalMessages');
-
-        if (currentChatMessages.length === 0) {
-            container.innerHTML = `<div class="text-center py-10 text-gray-400">
-        <i class="fas fa-comment-dots text-5xl mb-3"></i>
-        <p>Hozircha xabarlar yo'q</p>
-        <p class="text-sm mt-1">Birinchi xabarni yozing!</p>
-      </div>`;
-            return;
-        }
-
-        container.innerHTML = currentChatMessages.map(msg => `
-      <div class="flex ${msg.isMine ? 'justify-end' : 'justify-start'}">
-        <div class="max-w-[75%] ${msg.isMine ? 'bg-green-500 text-white' : 'bg-white border border-gray-200'} rounded-2xl px-4 py-2 shadow-sm">
-          <p class="text-sm">${escapeHtml(msg.text)}</p>
-          <p class="text-xs ${msg.isMine ? 'text-green-100' : 'text-gray-400'} mt-1">${msg.time}</p>
-        </div>
-      </div>
-    `).join('');
-
-        container.scrollTop = container.scrollHeight;
-    }
-
-    function sendModalMessage() {
-        const input = document.getElementById('chatModalInput');
-        const text = input.value.trim();
-        if (!text || !currentChatItem) return;
-
-        const msg = {
-            text: text,
-            isMine: true,
-            time: new Date().toLocaleTimeString('uz', { hour: '2-digit', minute: '2-digit' })
+        const handleLogout = () => {
+            authService.logout();
+            navigate('/login');
         };
 
-        currentChatMessages.push(msg);
-        const key = `chat_load_${currentChatItem.id}`;
-        localStorage.setItem(key, JSON.stringify(currentChatMessages));
+        const menuItems = [
+            { path: '/dashboard', label: 'Dashboard', icon: '📊' },
+            { path: '/loads', label: 'Yuklar', icon: '🚚' },
+            { path: '/users', label: 'Foydalanuvchilar', icon: '👥' },
+            { path: '/categories', label: 'Kategoriyalar', icon: '📦' },
+            { path: '/profile', label: 'Profil', icon: '👤' }
+        ];
 
-        input.value = '';
-        renderChatMessages();
+        return (
+            <>
+                <div className="header">
+                    <div className="header-content">
+                        <div className="logo" onClick={() => navigate('/dashboard')}>Yukbor.uz</div>
+                        <div className="nav-menu">
+                            {menuItems.map(item => (
+                                <button
+                                    key={item.path}
+                                    className={`nav-item ${window.location.pathname === item.path ? 'active' : ''}`}
+                                    onClick={() => navigate(item.path)}
+                                >
+                                    <span>{item.icon}</span> {item.label}
+                                </button>
+                            ))}
+                            <button className="nav-item logout" onClick={handleLogout}>🚪 Chiqish</button>
+                        </div>
+                        <button className="mobile-menu-btn" onClick={() => setMenuOpen(!menuOpen)}>☰</button>
+                    </div>
+                </div>
+                {menuOpen && (
+                    <div className="mobile-menu">
+                        {menuItems.map(item => (
+                            <button
+                                key={item.path}
+                                className="nav-item"
+                                onClick={() => { navigate(item.path); setMenuOpen(false); }}
+                            >
+                                {item.icon} {item.label}
+                            </button>
+                        ))}
+                        <button className="nav-item logout" onClick={() => { handleLogout(); setMenuOpen(false); }}>
+                            🚪 Chiqish
+                        </button>
+                    </div>
+                )}
+            </>
+        );
+    };
 
-        setTimeout(() => {
-            const reply = {
-                text: "Assalomu alaykum! Yordam kerakmi?",
-                isMine: false,
-                time: new Date().toLocaleTimeString('uz', { hour: '2-digit', minute: '2-digit' })
-            };
-            currentChatMessages.push(reply);
-            localStorage.setItem(key, JSON.stringify(currentChatMessages));
-            renderChatMessages();
-        }, 1000);
-    }
+    // ==================== Login Page ====================
+    const Login = () => {
+        const [formData, setFormData] = React.useState({ phone: '', password: '' });
+        const [error, setError] = React.useState('');
+        const [loading, setLoading] = React.useState(false);
 
-    function closeChatModal() {
-        document.getElementById('chatModal').style.display = 'none';
-        currentChatItem = null;
-        currentChatMessages = [];
-    }
+        const handleSubmit = async (e) => {
+            e.preventDefault();
+            setLoading(true);
+            setError('');
+            try {
+                await authService.login(formData.phone, formData.password);
+                window.location.href = '/dashboard';
+            } catch (err) {
+                setError(err.response?.data?.message || 'Login failed');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
+        return (
+            <div style={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                padding: '20px'
+            }}>
+                <div className="card" style={{ maxWidth: '400px', width: '100%' }}>
+                    <h2 className="text-center" style={{ marginBottom: '30px' }}>Yukbor.uz ga xush kelibsiz</h2>
+                    {error && <div style={{ background: '#ffebee', color: '#f44336', padding: '10px', borderRadius: '5px', marginBottom: '20px', textAlign: 'center' }}>{error}</div>}
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <label>Telefon raqam</label>
+                            <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+998901234567" required />
+                        </div>
+                        <div className="form-group">
+                            <label>Parol</label>
+                            <input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} placeholder="********" required />
+                        </div>
+                        <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
+                            {loading ? 'Kirish...' : 'Kirish'}
+                        </button>
+                    </form>
+                    <p className="text-center" style={{ marginTop: '20px' }}>
+                        Hisobingiz yo'qmi? <a href="/register" style={{ color: '#1976d2' }}>Ro'yxatdan o'tish</a>
+                    </p>
+                </div>
+            </div>
+        );
+    };
 
-    // Global functions
-    window.selectType = selectType;
-    window.backToType = backToType;
-    window.filterDriverLoads = filterDriverLoads;
-    window.showDriverLoadDetail = showDriverLoadDetail;
-    window.closeDriverLoadDetailModal = closeDriverLoadDetailModal;
-    window.filterShipperData = filterShipperData;
-    window.showLoadDetailModal = showLoadDetailModal;
-    window.closeLoadDetailModal = closeLoadDetailModal;
-    window.showDriverDetailModal = showDriverDetailModal;
-    window.closeDriverDetailModal = closeDriverDetailModal;
-    window.openChatModal = openChatModal;
-    window.sendModalMessage = sendModalMessage;
-    window.closeChatModal = closeChatModal;
+    // ==================== Register Page ====================
+    const Register = () => {
+        const [formData, setFormData] = React.useState({ phone: '', password: '', firstName: '', lastName: '', userType: 'USER' });
+        const [error, setError] = React.useState('');
+        const [loading, setLoading] = React.useState(false);
 
-    // Start
-    init();
+        const handleSubmit = async (e) => {
+            e.preventDefault();
+            setLoading(true);
+            setError('');
+            try {
+                await authService.register(formData);
+                window.location.href = '/dashboard';
+            } catch (err) {
+                setError(err.response?.data?.message || 'Registration failed');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        return (
+            <div style={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                padding: '20px'
+            }}>
+                <div className="card" style={{ maxWidth: '450px', width: '100%' }}>
+                    <h2 className="text-center" style={{ marginBottom: '30px' }}>Ro'yxatdan o'tish</h2>
+                    {error && <div style={{ background: '#ffebee', color: '#f44336', padding: '10px', borderRadius: '5px', marginBottom: '20px', textAlign: 'center' }}>{error}</div>}
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-group"><label>Ism</label><input type="text" value={formData.firstName} onChange={(e) => setFormData({ ...formData, firstName: e.target.value })} required /></div>
+                        <div className="form-group"><label>Familiya</label><input type="text" value={formData.lastName} onChange={(e) => setFormData({ ...formData, lastName: e.target.value })} required /></div>
+                        <div className="form-group"><label>Telefon raqam</label><input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+998901234567" required /></div>
+                        <div className="form-group"><label>Parol</label><input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required /></div>
+                        <div className="form-group">
+                            <label>Foydalanuvchi turi</label>
+                            <select value={formData.userType} onChange={(e) => setFormData({ ...formData, userType: e.target.value })}>
+                                <option value="USER">Oddiy foydalanuvchi</option>
+                                <option value="DRIVER">Haydovchi</option>
+                            </select>
+                        </div>
+                        <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
+                            {loading ? 'Ro\'yxatdan o\'tish...' : 'Ro\'yxatdan o\'tish'}
+                        </button>
+                    </form>
+                    <p className="text-center" style={{ marginTop: '20px' }}>
+                        Hisobingiz bormi? <a href="/login" style={{ color: '#1976d2' }}>Kirish</a>
+                    </p>
+                </div>
+            </div>
+        );
+    };
+
+    // ==================== Dashboard Page ====================
+    const Dashboard = () => {
+        const [stats, setStats] = React.useState({ totalLoads: 0, activeLoads: 0, totalUsers: 0 });
+        const [recentLoads, setRecentLoads] = React.useState([]);
+        const [loading, setLoading] = React.useState(true);
+
+        React.useEffect(() => {
+            fetchData();
+        }, []);
+
+        const fetchData = async () => {
+            try {
+                const [loads, users] = await Promise.all([loadService.getAll(), userService.getAll()]);
+                setStats({
+                    totalLoads: loads.length,
+                    activeLoads: loads.filter(l => l.status === 'ACTIVE').length,
+                    totalUsers: users.length
+                });
+                setRecentLoads(loads.slice(0, 5));
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (loading) return <LoadingSpinner />;
+
+        const StatCard = ({ title, value, icon, color }) => (
+            <div className="stat-card">
+                <div className="stat-card-content">
+                    <div className="stat-icon">{icon}</div>
+                    <div>
+                        <div className="stat-title">{title}</div>
+                        <div className="stat-value" style={{ color }}>{value}</div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        return (
+            <div className="page-container">
+                <h1 className="page-title">Dashboard</h1>
+                <div className="stats-grid">
+                    <StatCard title="Jami yuklar" value={stats.totalLoads} icon="📦" color="#1976d2" />
+                    <StatCard title="Faol yuklar" value={stats.activeLoads} icon="🚚" color="#4caf50" />
+                    <StatCard title="Foydalanuvchilar" value={stats.totalUsers} icon="👥" color="#ff9800" />
+                </div>
+                <div className="card">
+                    <h3>So'nggi yuklar</h3>
+                    {recentLoads.length === 0 ? (
+                        <EmptyState message="Hech qanday yuk topilmadi" />
+                    ) : (
+                        <div className="table-container">
+                            <table>
+                                <thead>
+                                <tr><th>Nomi</th><th>Kategoriya</th><th>Narxi</th><th>Status</th></tr>
+                                </thead>
+                                <tbody>
+                                {recentLoads.map(load => (
+                                    <tr key={load.id}>
+                                        <td>{load.titleUz}</td>
+                                        <td>{load.categoryName}</td>
+                                        <td>{new Intl.NumberFormat('uz-UZ').format(load.price)} so'm</td>
+                                        <td><span className={`badge badge-${load.status === 'ACTIVE' ? 'active' : 'completed'}`}>{load.status === 'ACTIVE' ? 'Faol' : 'Tugagan'}</span></td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    // ==================== Loads Page ====================
+    const Loads = () => {
+        const [loads, setLoads] = React.useState([]);
+        const [loading, setLoading] = React.useState(true);
+        const [searchTerm, setSearchTerm] = React.useState('');
+        const [currentPage, setCurrentPage] = React.useState(0);
+        const [totalPages, setTotalPages] = React.useState(0);
+        const [showModal, setShowModal] = React.useState(false);
+        const [selectedLoad, setSelectedLoad] = React.useState(null);
+        const [formData, setFormData] = React.useState({ titleUz: '', categoryId: '', weight: '', volume: '', fromAddress: '', toAddress: '', price: '', description: '' });
+
+        React.useEffect(() => { fetchLoads(); }, [currentPage]);
+
+        const fetchLoads = async () => {
+            try {
+                setLoading(true);
+                const data = await loadService.getPage(currentPage, 10);
+                setLoads(data.content);
+                setTotalPages(data.totalPages);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const handleSubmit = async (e) => {
+            e.preventDefault();
+            try {
+                if (selectedLoad) await loadService.update(selectedLoad.id, formData);
+                else await loadService.create(formData);
+                fetchLoads();
+                setShowModal(false);
+                resetForm();
+                showToast('Muvaffaqiyatli saqlandi', 'success');
+            } catch (err) {
+                showToast('Xatolik yuz berdi', 'error');
+            }
+        };
+
+        const handleDelete = async (id) => {
+            if (confirm('Haqiqatan ham bu yukni o\'chirmoqchimisiz?')) {
+                try {
+                    await loadService.delete(id);
+                    fetchLoads();
+                    showToast('Yuk o\'chirildi', 'success');
+                } catch (err) {
+                    showToast('Xatolik yuz berdi', 'error');
+                }
+            }
+        };
+
+        const resetForm = () => {
+            setFormData({ titleUz: '', categoryId: '', weight: '', volume: '', fromAddress: '', toAddress: '', price: '', description: '' });
+            setSelectedLoad(null);
+        };
+
+        const filteredLoads = loads.filter(l => l.titleUz?.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        if (loading) return <LoadingSpinner />;
+
+        return (
+            <div className="page-container">
+                <div className="page-header">
+                    <h1 className="page-title">Yuklar</h1>
+                    <div className="flex">
+                        <input type="text" className="search-box" placeholder="Qidirish..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                        <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>+ Yangi yuk</button>
+                    </div>
+                </div>
+
+                {filteredLoads.length === 0 ? (
+                    <EmptyState message="Hech qanday yuk topilmadi" />
+                ) : (
+                    <>
+                        <div className="card-grid">
+                            {filteredLoads.map(load => (
+                                <div className="card" key={load.id}>
+                                    <div className="flex-between">
+                                        <h3>{load.titleUz}</h3>
+                                        <div>
+                                            <button className="action-btn action-edit" onClick={() => { setSelectedLoad(load); setFormData(load); setShowModal(true); }}>✏️</button>
+                                            <button className="action-btn action-delete" onClick={() => handleDelete(load.id)}>🗑️</button>
+                                        </div>
+                                    </div>
+                                    <p>Kategoriya: {load.categoryName}</p>
+                                    <p>Og'irlik: {load.weight} kg | Hajm: {load.volume} m³</p>
+                                    <p>Narxi: {new Intl.NumberFormat('uz-UZ').format(load.price)} so'm</p>
+                                    <p>Manzil: {load.fromAddress} → {load.toAddress}</p>
+                                    <span className={`badge badge-${load.status === 'ACTIVE' ? 'active' : 'completed'}`}>{load.status === 'ACTIVE' ? 'Faol' : 'Tugagan'}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="pagination">
+                            <button onClick={() => setCurrentPage(p => Math.max(0, p - 1))} disabled={currentPage === 0}>Oldingi</button>
+                            <span className="page-info">{currentPage + 1} / {totalPages}</span>
+                            <button onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))} disabled={currentPage === totalPages - 1}>Keyingi</button>
+                        </div>
+                    </>
+                )}
+
+                {showModal && (
+                    <div className="modal-overlay">
+                        <div className="modal-content">
+                            <h2>{selectedLoad ? 'Yukni tahrirlash' : 'Yangi yuk qo\'shish'}</h2>
+                            <form onSubmit={handleSubmit}>
+                                <div className="form-group"><label>Sarlavha</label><input type="text" value={formData.titleUz} onChange={(e) => setFormData({ ...formData, titleUz: e.target.value })} required /></div>
+                                <div className="form-group"><label>Kategoriya ID</label><input type="number" value={formData.categoryId} onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })} required /></div>
+                                <div className="form-group"><label>Og'irlik (kg)</label><input type="number" value={formData.weight} onChange={(e) => setFormData({ ...formData, weight: e.target.value })} required /></div>
+                                <div className="form-group"><label>Hajm (m³)</label><input type="number" value={formData.volume} onChange={(e) => setFormData({ ...formData, volume: e.target.value })} required /></div>
+                                <div className="form-group"><label>Jo'natish manzili</label><input type="text" value={formData.fromAddress} onChange={(e) => setFormData({ ...formData, fromAddress: e.target.value })} required /></div>
+                                <div className="form-group"><label>Yetkazish manzili</label><input type="text" value={formData.toAddress} onChange={(e) => setFormData({ ...formData, toAddress: e.target.value })} required /></div>
+                                <div className="form-group"><label>Narxi (so'm)</label><input type="number" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required /></div>
+                                <div className="form-group"><label>Tavsif</label><textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows="3" /></div>
+                                <div className="flex">
+                                    <button type="submit" className="btn btn-primary">Saqlash</button>
+                                    <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Bekor qilish</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // ==================== Users Page ====================
+    const Users = () => {
+        const [users, setUsers] = React.useState([]);
+        const [loading, setLoading] = React.useState(true);
+        const [searchTerm, setSearchTerm] = React.useState('');
+        const [currentPage, setCurrentPage] = React.useState(0);
+        const [totalPages, setTotalPages] = React.useState(0);
+        const [showModal, setShowModal] = React.useState(false);
+        const [selectedUser, setSelectedUser] = React.useState(null);
+        const [formData, setFormData] = React.useState({ phone: '', firstName: '', lastName: '', userType: 'USER' });
+
+        React.useEffect(() => { fetchUsers(); }, [currentPage]);
+
+        const fetchUsers = async () => {
+            try {
+                setLoading(true);
+                const data = await userService.getPage(currentPage, 10);
+                setUsers(data.content);
+                setTotalPages(data.totalPages);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const handleSubmit = async (e) => {
+            e.preventDefault();
+            try {
+                if (selectedUser) await userService.update(selectedUser.id, formData);
+                else await userService.create(formData);
+                fetchUsers();
+                setShowModal(false);
+                resetForm();
+                showToast('Muvaffaqiyatli saqlandi', 'success');
+            } catch (err) {
+                showToast('Xatolik yuz berdi', 'error');
+            }
+        };
+
+        const handleDelete = async (id) => {
+            if (confirm('Haqiqatan ham bu foydalanuvchini o\'chirmoqchimisiz?')) {
+                try {
+                    await userService.delete(id);
+                    fetchUsers();
+                    showToast('Foydalanuvchi o\'chirildi', 'success');
+                } catch (err) {
+                    showToast('Xatolik yuz berdi', 'error');
+                }
+            }
+        };
+
+        const resetForm = () => {
+            setFormData({ phone: '', firstName: '', lastName: '', userType: 'USER' });
+            setSelectedUser(null);
+        };
+
+        const filteredUsers = users.filter(u =>
+            u.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            u.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            u.phone?.includes(searchTerm)
+        );
+
+        if (loading) return <LoadingSpinner />;
+
+        return (
+            <div className="page-container">
+                <div className="page-header">
+                    <h1 className="page-title">Foydalanuvchilar</h1>
+                    <div className="flex">
+                        <input type="text" className="search-box" placeholder="Qidirish..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                        <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>+ Yangi foydalanuvchi</button>
+                    </div>
+                </div>
+
+                {filteredUsers.length === 0 ? (
+                    <EmptyState message="Hech qanday foydalanuvchi topilmadi" />
+                ) : (
+                    <>
+                        <div className="table-container">
+                            <table>
+                                <thead>
+                                <tr><th>ID</th><th>Ism</th><th>Familiya</th><th>Telefon</th><th>Turi</th><th>Amallar</th></tr>
+                                </thead>
+                                <tbody>
+                                {filteredUsers.map(user => (
+                                    <tr key={user.id}>
+                                        <td>{user.id}</td><td>{user.firstName}</td><td>{user.lastName}</td><td>{user.phone}</td>
+                                        <td><span className={`badge badge-${user.userType === 'ADMIN' ? 'admin' : 'user'}`}>{user.userType === 'ADMIN' ? 'Admin' : user.userType === 'DRIVER' ? 'Haydovchi' : 'Foydalanuvchi'}</span></td>
+                                        <td>
+                                            <button className="action-btn action-edit" onClick={() => { setSelectedUser(user); setFormData(user); setShowModal(true); }}>✏️</button>
+                                            <button className="action-btn action-delete" onClick={() => handleDelete(user.id)}>🗑️</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="pagination">
+                            <button onClick={() => setCurrentPage(p => Math.max(0, p - 1))} disabled={currentPage === 0}>Oldingi</button>
+                            <span className="page-info">{currentPage + 1} / {totalPages}</span>
+                            <button onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))} disabled={currentPage === totalPages - 1}>Keyingi</button>
+                        </div>
+                    </>
+                )}
+
+                {showModal && (
+                    <div className="modal-overlay">
+                        <div className="modal-content">
+                            <h2>{selectedUser ? 'Foydalanuvchini tahrirlash' : 'Yangi foydalanuvchi qo\'shish'}</h2>
+                            <form onSubmit={handleSubmit}>
+                                <div className="form-group"><label>Ism</label><input type="text" value={formData.firstName} onChange={(e) => setFormData({ ...formData, firstName: e.target.value })} required /></div>
+                                <div className="form-group"><label>Familiya</label><input type="text" value={formData.lastName} onChange={(e) => setFormData({ ...formData, lastName: e.target.value })} required /></div>
+                                <div className="form-group"><label>Telefon raqam</label><input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} required /></div>
+                                <div className="form-group">
+                                    <label>Foydalanuvchi turi</label>
+                                    <select value={formData.userType} onChange={(e) => setFormData({ ...formData, userType: e.target.value })}>
+                                        <option value="USER">Oddiy foydalanuvchi</option><option value="DRIVER">Haydovchi</option><option value="ADMIN">Admin</option>
+                                    </select>
+                                </div>
+                                <div className="flex">
+                                    <button type="submit" className="btn btn-primary">Saqlash</button>
+                                    <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Bekor qilish</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // ==================== Profile Page ====================
+    const Profile = () => {
+        const [user, setUser] = React.useState(null);
+        const [loading, setLoading] = React.useState(true);
+        const [isEditing, setIsEditing] = React.useState(false);
+        const [formData, setFormData] = React.useState({ firstName: '', lastName: '', phone: '' });
+
+        React.useEffect(() => { fetchProfile(); }, []);
+
+        const fetchProfile = async () => {
+            try {
+                setLoading(true);
+                const data = await userService.getMe();
+                setUser(data);
+                setFormData({ firstName: data.firstName, lastName: data.lastName, phone: data.phone });
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const handleSubmit = async (e) => {
+            e.preventDefault();
+            try {
+                const updated = await userService.patch(user.id, formData);
+                setUser(updated);
+                setIsEditing(false);
+                showToast('Profil muvaffaqiyatli yangilandi', 'success');
+            } catch (err) {
+                showToast('Xatolik yuz berdi', 'error');
+            }
+        };
+
+        if (loading) return <LoadingSpinner />;
+        if (!user) return <EmptyState message="Foydalanuvchi topilmadi" />;
+
+        return (
+            <div className="page-container" style={{ maxWidth: '800px' }}>
+                <div className="card">
+                    <div className="flex-between">
+                        <h1>Mening profilim</h1>
+                        {!isEditing && <button className="btn btn-primary" onClick={() => setIsEditing(true)}>✏️ Tahrirlash</button>}
+                    </div>
+
+                    {isEditing ? (
+                        <form onSubmit={handleSubmit} className="mt-20">
+                            <div className="form-group"><label>Ism</label><input type="text" value={formData.firstName} onChange={(e) => setFormData({ ...formData, firstName: e.target.value })} required /></div>
+                            <div className="form-group"><label>Familiya</label><input type="text" value={formData.lastName} onChange={(e) => setFormData({ ...formData, lastName: e.target.value })} required /></div>
+                            <div className="form-group"><label>Telefon raqam</label><input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} required /></div>
+                            <div className="flex">
+                                <button type="submit" className="btn btn-primary">Saqlash</button>
+                                <button type="button" className="btn btn-secondary" onClick={() => { setIsEditing(false); setFormData({ firstName: user.firstName, lastName: user.lastName, phone: user.phone }); }}>Bekor qilish</button>
+                            </div>
+                        </form>
+                    ) : (
+                        <div className="mt-20">
+                            <div className="flex" style={{ alignItems: 'center', marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid #eee' }}>
+                                <div className="avatar">{user.firstName?.charAt(0)}{user.lastName?.charAt(0)}</div>
+                                <div><h2>{user.displayName || `${user.firstName} ${user.lastName}`}</h2><p>@{user.userType?.toLowerCase()}</p></div>
+                            </div>
+                            <div className="form-group"><label>Telefon raqam</label><p>{user.phone}</p></div>
+                            <div className="form-group"><label>Reyting</label><p><span style={{ color: '#ff9800' }}>★</span> {user.rating || 0}</p></div>
+                            <div className="form-group"><label>Jami sayohatlar</label><p>{user.totalTrips || 0}</p></div>
+                            <div className="form-group"><label>Ro'yxatdan o'tgan sana</label><p>{new Date(user.createdAt).toLocaleDateString('uz-UZ')}</p></div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    // ==================== Categories Page ====================
+    const Categories = () => {
+        const [categories, setCategories] = React.useState([]);
+        const [loading, setLoading] = React.useState(true);
+        const [searchTerm, setSearchTerm] = React.useState('');
+        const [showModal, setShowModal] = React.useState(false);
+        const [selectedCategory, setSelectedCategory] = React.useState(null);
+        const [formData, setFormData] = React.useState({ nameUz: '', nameRu: '', nameEn: '', code: '' });
+
+        React.useEffect(() => { fetchCategories(); }, []);
+
+        const fetchCategories = async () => {
+            try {
+                setLoading(true);
+                const data = await categoryService.getAll();
+                setCategories(data);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const handleSubmit = async (e) => {
+            e.preventDefault();
+            try {
+                if (selectedCategory) await categoryService.update(selectedCategory.id, formData);
+                else await categoryService.create(formData);
+                fetchCategories();
+                setShowModal(false);
+                resetForm();
+                showToast('Muvaffaqiyatli saqlandi', 'success');
+            } catch (err) {
+                showToast('Xatolik yuz berdi', 'error');
+            }
+        };
+
+        const handleDelete = async (id) => {
+            if (confirm('Haqiqatan ham bu kategoriyani o\'chirmoqchimisiz?')) {
+                try {
+                    await categoryService.delete(id);
+                    fetchCategories();
+                    showToast('Kategoriya o\'chirildi', 'success');
+                } catch (err) {
+                    showToast('Xatolik yuz berdi', 'error');
+                }
+            }
+        };
+
+        const resetForm = () => {
+            setFormData({ nameUz: '', nameRu: '', nameEn: '', code: '' });
+            setSelectedCategory(null);
+        };
+
+        const filteredCategories = categories.filter(c =>
+            c.nameUz?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            c.code?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        if (loading) return <LoadingSpinner />;
+
+        return (
+            <div className="page-container">
+                <div className="page-header">
+                    <h1 className="page-title">Kategoriyalar</h1>
+                    <div className="flex">
+                        <input type="text" className="search-box" placeholder="Qidirish..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                        <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>+ Yangi kategoriya</button>
+                    </div>
+                </div>
+
+                {filteredCategories.length === 0 ? (
+                    <EmptyState message="Hech qanday kategoriya topilmadi" />
+                ) : (
+                    <div className="card-grid">
+                        {filteredCategories.map(category => (
+                            <div className="card" key={category.id}>
+                                <div className="flex-between">
+                                    <h3>{category.nameUz}</h3>
+                                    <div>
+                                        <button className="action-btn action-edit" onClick={() => { setSelectedCategory(category); setFormData(category); setShowModal(true); }}>✏️</button>
+                                        <button className="action-btn action-delete" onClick={() => handleDelete(category.id)}>🗑️</button>
+                                    </div>
+                                </div>
+                                <p>Kod: {category.code || '-'}</p>
+                                <p style={{ fontSize: '12px', color: '#999' }}>Yaratilgan: {new Date(category.createdAt).toLocaleDateString('uz-UZ')}</p>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {showModal && (
+                    <div className="modal-overlay">
+                        <div className="modal-content">
+                            <h2>{selectedCategory ? 'Kategoriyani tahrirlash' : 'Yangi kategoriya qo\'shish'}</h2>
+                            <form onSubmit={handleSubmit}>
+                                <div className="form-group"><label>Nomi (Uzbek)</label><input type="text" value={formData.nameUz} onChange={(e) => setFormData({ ...formData, nameUz: e.target.value })} required /></div>
+                                <div className="form-group"><label>Nomi (Rus)</label><input type="text" value={formData.nameRu} onChange={(e) => setFormData({ ...formData, nameRu: e.target.value })} /></div>
+                                <div className="form-group"><label>Nomi (Ingliz)</label><input type="text" value={formData.nameEn} onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })} /></div>
+                                <div className="form-group"><label>Kod</label><input type="text" value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} /></div>
+                                <div className="flex">
+                                    <button type="submit" className="btn btn-primary">Saqlash</button>
+                                    <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Bekor qilish</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // ==================== App Router ====================
+    const App = () => {
+        const path = window.location.pathname;
+
+        // Public routes
+        if (path === '/login') return <Login />;
+        if (path === '/register') return <Register />;
+
+        // Protected routes with header
+        const renderWithHeader = (Component) => (
+            <PrivateRoute>
+                <Header />
+                <Component />
+            </PrivateRoute>
+        );
+
+        if (path === '/dashboard') return renderWithHeader(Dashboard);
+        if (path === '/loads') return renderWithHeader(Loads);
+        if (path === '/users') return renderWithHeader(Users);
+        if (path === '/profile') return renderWithHeader(Profile);
+        if (path === '/categories') return renderWithHeader(Categories);
+
+        // Default redirect
+        window.location.href = '/dashboard';
+        return null;
+    };
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
 </html>
